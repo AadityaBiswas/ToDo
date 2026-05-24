@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:todo/theme/app_theme.dart';
 
 class ToDoTile extends StatefulWidget {
-  const ToDoTile({super.key});
+  final String taskName;
+  const ToDoTile({super.key, required this.taskName});
   @override
   State<ToDoTile> createState() => _ToDoTileState();
 }
@@ -38,16 +39,16 @@ class _ToDoTileState extends State<ToDoTile> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          taskName(),
+          buildTaskName(),
           Row(children: [timeIcon(), SizedBox(width: 4), timeAllocated()]),
         ],
       ),
     );
   }
 
-  Text taskName() {
+  Text buildTaskName() {
     return Text(
-      "Task Name",
+      widget.taskName,
       style: AppTextStyles.taskTitle.copyWith(
         color: isCompleted ? AppColors.completedText : AppColors.activeText,
       ),

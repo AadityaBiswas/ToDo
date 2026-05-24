@@ -11,6 +11,7 @@ class AddTask extends StatefulWidget {
 }
 
 class _AddTaskState extends State<AddTask> {
+  final TextEditingController _taskName = TextEditingController();
   bool saveClicked = false;
   int selectedCategory = -1;
   bool dateTapped = true;
@@ -58,50 +59,61 @@ class _AddTaskState extends State<AddTask> {
               });
             },
           ),
-          Positioned(
-            bottom: 10,
-            child: GestureDetector(
-              onTap: () {
+          GestureDetector(
+            onTap: () async {
+              String taskText = _taskName.text.trim();
+
+              if (taskText.isNotEmpty) {
                 setState(() {
-                  saveClicked = !saveClicked;
-                  Navigator.pop(context);
+                  saveClicked = true;
                 });
-              },
-              child: Stack(
-                children: [
-                  Container(
-                    margin: EdgeInsets.only(top: 16),
-                    height: saveClicked ? 0 : 70,
-                    width: double.maxFinite,
-                    decoration: BoxDecoration(
-                      color: Colors.grey,
-                      borderRadius: BorderRadius.circular(64),
-                    ),
+                Navigator.pop(context, taskText);
+              } else {
+                setState(() {
+                  saveClicked = true;
+                });
+
+                await Future.delayed(const Duration(milliseconds: 150));
+
+                setState(() {
+                  saveClicked = false;
+                });
+
+                print("Unable to save: Task name is empty.");
+              }
+            },
+            child: Stack(
+              children: [
+                Container(
+                  margin: EdgeInsets.only(top: 16),
+                  height: saveClicked ? 0 : 70,
+                  width: double.maxFinite,
+                  decoration: BoxDecoration(
+                    color: Colors.grey,
+                    borderRadius: BorderRadius.circular(64),
                   ),
-                  Container(
-                    margin: EdgeInsets.only(top: saveClicked ? 18 : 16),
-                    height: 64,
-                    width: double.maxFinite,
-                    decoration: BoxDecoration(
-                      color: saveClicked
-                          ? AppColors.secondaryText
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(64),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Save",
-                        style: TextStyle(
-                          fontFamily: "HankenGrostek",
-                          fontSize: 24,
-                          fontWeight: FontWeight.w600,
-                          color: saveClicked ? Colors.white : Colors.black,
-                        ),
+                ),
+                Container(
+                  margin: EdgeInsets.only(top: saveClicked ? 18 : 16),
+                  height: 64,
+                  width: double.maxFinite,
+                  decoration: BoxDecoration(
+                    color: saveClicked ? AppColors.secondaryText : Colors.white,
+                    borderRadius: BorderRadius.circular(64),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Save",
+                      style: TextStyle(
+                        fontFamily: "HankenGrostek",
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                        color: saveClicked ? Colors.white : Colors.black,
                       ),
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -136,8 +148,9 @@ class _AddTaskState extends State<AddTask> {
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: const Center(
+      child: Center(
         child: TextField(
+          controller: _taskName,
           cursorColor: Colors.white60,
           style: TextStyle(
             color: Colors.white,

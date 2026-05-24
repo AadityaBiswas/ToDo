@@ -1,5 +1,3 @@
-// ignore_for_file: deprecated_member_use
-
 import 'package:flutter/material.dart';
 import 'package:todo/pages/add_task.dart';
 import 'package:todo/pages/todotile.dart';
@@ -13,6 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  List tasks = [];
   bool fabTapped = false;
   @override
   Widget build(BuildContext context) {
@@ -23,16 +22,14 @@ class _HomePageState extends State<HomePage> {
   }
 
   ListView taskList() {
-    return ListView(
+    return ListView.builder(
+      itemCount: tasks.length,
       padding: const EdgeInsets.only(top: 48, left: 20, right: 20, bottom: 48),
-      children: [
-        ToDoTile(),
-        ToDoTile(),
-        ToDoTile(),
-        ToDoTile(),
-        ToDoTile(),
-        ToDoTile(),
-      ],
+      itemBuilder: (context, index) {
+        String taskName = tasks[index];
+
+        return ToDoTile(taskName: taskName);
+      },
     );
   }
 
@@ -58,6 +55,9 @@ class _HomePageState extends State<HomePage> {
               ).then((value) {
                 setState(() {
                   fabTapped = false;
+                  if (value != null) {
+                    tasks.add(value);
+                  }
                 });
               });
             },
