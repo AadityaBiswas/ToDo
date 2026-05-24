@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:todo/pages/time_allocation.dart';
 import 'package:todo/theme/app_theme.dart';
 
 class SchedulingSection extends StatelessWidget {
@@ -6,27 +7,49 @@ class SchedulingSection extends StatelessWidget {
   final bool timeTapped;
   final ValueChanged<bool> onDateToggled;
   final ValueChanged<bool> onTimeToggled;
+  final Function(String hour, String minute) onTimeSelected;
+  final String selectedHour;
+  final String selectedMinute;
 
   const SchedulingSection({
+    required this.selectedHour,
+    required this.selectedMinute,
     super.key,
     required this.dateTapped,
     required this.timeTapped,
     required this.onDateToggled,
     required this.onTimeToggled,
+    required this.onTimeSelected,
   });
 
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    return Row(children: [dateSelector(screenWidth), timeSelector()]);
+    return Row(children: [dateSelector(screenWidth), timeSelector(context)]);
   }
 
-  GestureDetector timeSelector() {
+  GestureDetector timeSelector(BuildContext context) {
     return GestureDetector(
-      onTap: () => onTimeToggled(!timeTapped),
+      onTap: () async {
+        final result =
+            await showModalBottomSheet<({String timeHour, String timeMinute})>(
+              context: context,
+              builder: (context) {
+                return TimeAllocation(
+                  initialHour: selectedHour,
+                  initialMinute: selectedMinute,
+                );
+              },
+            );
+
+        if (result != null) {
+          onTimeSelected(result.timeHour, result.timeMinute);
+          onTimeToggled(true);
+        }
+      },
       child: Container(
-        padding: EdgeInsets.all(7),
+        padding: const EdgeInsets.all(7),
         width: 140,
         height: 82,
         decoration: BoxDecoration(
@@ -37,7 +60,7 @@ class SchedulingSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            SizedBox(height: 6),
+            const SizedBox(height: 6),
             Text(
               "Duration",
               style: TextStyle(
@@ -46,15 +69,31 @@ class SchedulingSection extends StatelessWidget {
                 fontFamily: "JetBrainsMono",
               ),
             ),
-            SizedBox(height: 4),
-            Text(
-              "1h 30m",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
+            const SizedBox(height: 4),
+            if (!(selectedHour == "0" && selectedMinute == "0"))
+              Text(
+                selectedHour == "0" && selectedMinute == "0"
+                    ? "Set estimate"
+                    : selectedHour == "0"
+                    ? "${selectedMinute}m"
+                    : selectedMinute == "0"
+                    ? "${selectedHour}h"
+                    : "${selectedHour}h ${selectedMinute}m",
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
               ),
-            ),
+            if ((selectedHour == "0" && selectedMinute == "0"))
+              Text(
+                "Set a Estimate",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: AppColors.activeText,
+                  fontFamily: "JetBrainsMono",
+                ),
+              ),
           ],
         ),
       ),

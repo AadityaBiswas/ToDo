@@ -11,7 +11,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List tasks = [];
+  List<({String name, String hour, String minute})> tasks = [];
   bool fabTapped = false;
   @override
   Widget build(BuildContext context) {
@@ -26,9 +26,13 @@ class _HomePageState extends State<HomePage> {
       itemCount: tasks.length,
       padding: const EdgeInsets.only(top: 48, left: 20, right: 20, bottom: 48),
       itemBuilder: (context, index) {
-        String taskName = tasks[index];
+        final task = tasks[index];
 
-        return ToDoTile(taskName: taskName);
+        return ToDoTile(
+          taskName: task.name,
+          taskHour: task.hour,
+          taskMinute: task.minute,
+        );
       },
     );
   }

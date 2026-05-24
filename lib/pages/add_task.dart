@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:todo/theme/app_theme.dart';
-import 'category_selector.dart'; // Import your newly created files
+import 'category_selector.dart';
 import 'scheduling_section.dart';
 
 class AddTask extends StatefulWidget {
@@ -16,6 +16,8 @@ class _AddTaskState extends State<AddTask> {
   int selectedCategory = -1;
   bool dateTapped = true;
   bool timeTapped = false;
+  String selectedHour = "0";
+  String selectedMinute = "0";
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +48,8 @@ class _AddTaskState extends State<AddTask> {
           ),
 
           SchedulingSection(
+            selectedHour: selectedHour,
+            selectedMinute: selectedMinute,
             dateTapped: dateTapped,
             timeTapped: timeTapped,
             onDateToggled: (newValue) {
@@ -58,62 +62,71 @@ class _AddTaskState extends State<AddTask> {
                 timeTapped = newValue;
               });
             },
+            onTimeSelected: ((hour, minute) {
+              selectedHour = hour;
+              selectedMinute = minute;
+              timeTapped = true;
+            }),
           ),
-          GestureDetector(
-            onTap: () async {
-              String taskText = _taskName.text.trim();
+          saveTaskButton(context),
+        ],
+      ),
+    );
+  }
 
-              if (taskText.isNotEmpty) {
-                setState(() {
-                  saveClicked = true;
-                });
-                Navigator.pop(context, taskText);
-              } else {
-                setState(() {
-                  saveClicked = true;
-                });
-
-                await Future.delayed(const Duration(milliseconds: 150));
-
-                setState(() {
-                  saveClicked = false;
-                });
-
-                print("Unable to save: Task name is empty.");
-              }
-            },
-            child: Stack(
-              children: [
-                Container(
-                  margin: EdgeInsets.only(top: 16),
-                  height: saveClicked ? 0 : 70,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    color: Colors.grey,
-                    borderRadius: BorderRadius.circular(64),
-                  ),
+  GestureDetector saveTaskButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        String taskText = _taskName.text.trim();
+        if (taskText.isNotEmpty) {
+          setState(() {
+            saveClicked = true;
+          });
+          Navigator.pop(context, (
+            name: taskText,
+            hour: selectedHour,
+            minute: selectedMinute,
+          ));
+        } else {
+          setState(() {
+            saveClicked = true;
+          });
+          await Future.delayed(const Duration(milliseconds: 150));
+          setState(() {
+            saveClicked = false;
+          });
+          print("Unable to save: Task name is empty.");
+        }
+      },
+      child: Stack(
+        children: [
+          Container(
+            margin: EdgeInsets.only(top: 16),
+            height: saveClicked ? 0 : 70,
+            width: double.maxFinite,
+            decoration: BoxDecoration(
+              color: Colors.grey,
+              borderRadius: BorderRadius.circular(64),
+            ),
+          ),
+          Container(
+            margin: EdgeInsets.only(top: saveClicked ? 18 : 16),
+            height: 64,
+            width: double.maxFinite,
+            decoration: BoxDecoration(
+              color: saveClicked ? AppColors.secondaryText : Colors.white,
+              borderRadius: BorderRadius.circular(64),
+            ),
+            child: Center(
+              child: Text(
+                "Save",
+                style: TextStyle(
+                  fontFamily: "HankenGrostek",
+                  fontSize: 24,
+                  fontWeight: FontWeight.w600,
+                  color: saveClicked ? Colors.white : Colors.black,
                 ),
-                Container(
-                  margin: EdgeInsets.only(top: saveClicked ? 18 : 16),
-                  height: 64,
-                  width: double.maxFinite,
-                  decoration: BoxDecoration(
-                    color: saveClicked ? AppColors.secondaryText : Colors.white,
-                    borderRadius: BorderRadius.circular(64),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Save",
-                      style: TextStyle(
-                        fontFamily: "HankenGrostek",
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: saveClicked ? Colors.white : Colors.black,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
         ],

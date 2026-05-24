@@ -5,12 +5,20 @@ import 'package:todo/theme/app_theme.dart';
 
 class ToDoTile extends StatefulWidget {
   final String taskName;
-  const ToDoTile({super.key, required this.taskName});
+  final String taskHour;
+  final String taskMinute;
+  const ToDoTile({
+    super.key,
+    required this.taskName,
+    required this.taskHour,
+    required this.taskMinute,
+  });
   @override
   State<ToDoTile> createState() => _ToDoTileState();
 }
 
 class _ToDoTileState extends State<ToDoTile> {
+  String result = "";
   bool isCompleted = false;
   @override
   Widget build(BuildContext context) {
@@ -40,7 +48,8 @@ class _ToDoTileState extends State<ToDoTile> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           buildTaskName(),
-          Row(children: [timeIcon(), SizedBox(width: 4), timeAllocated()]),
+          if (!(widget.taskHour == "0" && widget.taskMinute == "0"))
+            Row(children: [SizedBox(width: 4), timeAllocated()]),
         ],
       ),
     );
@@ -57,18 +66,16 @@ class _ToDoTileState extends State<ToDoTile> {
 
   Text timeAllocated() {
     return Text(
-      "1h 30m",
+      widget.taskHour == "0" && widget.taskMinute == "0"
+          ? ""
+          : widget.taskHour == "0"
+          ? "${widget.taskMinute}m"
+          : widget.taskMinute == "0"
+          ? "${widget.taskHour}h"
+          : "${widget.taskHour}h ${widget.taskMinute}m",
       style: AppTextStyles.taskTime.copyWith(
         color: isCompleted ? AppColors.completedText : AppColors.secondaryText,
       ),
-    );
-  }
-
-  Icon timeIcon() {
-    return Icon(
-      Icons.access_time,
-      size: 14,
-      color: isCompleted ? AppColors.completedText : AppColors.secondaryText,
     );
   }
 
