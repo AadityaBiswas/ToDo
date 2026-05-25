@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:todo/pages/date_allocation.dart';
 import 'package:todo/pages/time_allocation.dart';
 import 'package:todo/theme/app_theme.dart';
 
 class SchedulingSection extends StatelessWidget {
+  final String selectedDate;
+  final int selectedMonth;
+  final int selectedYear;
   final bool dateTapped;
   final bool timeTapped;
   final ValueChanged<bool> onDateToggled;
@@ -10,11 +14,16 @@ class SchedulingSection extends StatelessWidget {
   final Function(String hour, String minute) onTimeSelected;
   final String selectedHour;
   final String selectedMinute;
+  final Function(String date, int month, int year) onDateSelected;
 
   const SchedulingSection({
+    required this.selectedDate,
+    required this.selectedMonth,
+    required this.selectedYear,
     required this.selectedHour,
     required this.selectedMinute,
     super.key,
+    required this.onDateSelected,
     required this.dateTapped,
     required this.timeTapped,
     required this.onDateToggled,
@@ -26,7 +35,9 @@ class SchedulingSection extends StatelessWidget {
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
 
-    return Row(children: [dateSelector(screenWidth), timeSelector(context)]);
+    return Row(
+      children: [dateSelector(screenWidth, context), timeSelector(context)],
+    );
   }
 
   GestureDetector timeSelector(BuildContext context) {
@@ -89,9 +100,10 @@ class SchedulingSection extends StatelessWidget {
               Text(
                 "Set a Estimate",
                 style: TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   color: AppColors.activeText,
                   fontFamily: "JetBrainsMono",
+                  fontWeight: FontWeight.w600,
                 ),
               ),
           ],
@@ -100,9 +112,25 @@ class SchedulingSection extends StatelessWidget {
     );
   }
 
-  GestureDetector dateSelector(double screenWidth) {
+  GestureDetector dateSelector(double screenWidth, BuildContext context) {
     return GestureDetector(
-      onTap: () => onDateToggled(!dateTapped),
+      onTap: () async {
+        final result =
+            await showModalBottomSheet<({String day, int month, int year})>(
+              context: context,
+              builder: ((context) {
+                return DateAllocation(
+                  finalDay: selectedDate,
+                  finalMonth: selectedMonth,
+                  finalYear: selectedYear,
+                );
+              }),
+            );
+        if (result != null) {
+          onDateSelected(result.day, result.month, result.year);
+          onDateToggled(true);
+        }
+      },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 42, vertical: 8),
         margin: EdgeInsets.only(right: (screenWidth - 41 - 220 - 140)),
@@ -127,7 +155,11 @@ class SchedulingSection extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              "Today",
+              selectedDate == DateTime.now().day.toString() &&
+                      selectedMonth == DateTime.now().month &&
+                      selectedYear == DateTime.now().year
+                  ? "Today"
+                  : "$selectedDate.${selectedMonth.toString()}.$selectedYear",
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,

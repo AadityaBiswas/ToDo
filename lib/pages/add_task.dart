@@ -18,7 +18,9 @@ class _AddTaskState extends State<AddTask> {
   bool timeTapped = false;
   String selectedHour = "0";
   String selectedMinute = "0";
-
+  String selectedDate = DateTime.now().day.toString();
+  int selectedMonth = DateTime.now().month;
+  int selectedYear = DateTime.now().year;
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -48,6 +50,9 @@ class _AddTaskState extends State<AddTask> {
           ),
 
           SchedulingSection(
+            selectedDate: selectedDate,
+            selectedMonth: selectedMonth,
+            selectedYear: selectedYear,
             selectedHour: selectedHour,
             selectedMinute: selectedMinute,
             dateTapped: dateTapped,
@@ -57,6 +62,14 @@ class _AddTaskState extends State<AddTask> {
                 dateTapped = newValue;
               });
             },
+            onDateSelected: ((date, month, year) {
+              setState(() {
+                selectedDate = date;
+                selectedMonth = month;
+                selectedYear = year;
+                dateTapped = true;
+              });
+            }),
             onTimeToggled: (newValue) {
               setState(() {
                 timeTapped = newValue;

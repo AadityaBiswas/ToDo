@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage> {
               children: [
                 Container(
                   width: 64,
-                  height: fabTapped ? 64 : 72,
+                  height: fabTapped ? 0 : 68,
                   margin: EdgeInsets.only(top: fabTapped ? 8 : 0),
                   decoration: BoxDecoration(
                     color: AppColors.tileBottom,
