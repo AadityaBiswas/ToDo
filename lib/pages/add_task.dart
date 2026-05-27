@@ -131,14 +131,15 @@ class _AddTaskState extends State<AddTask> {
           setState(() {
             saveClicked = true;
           });
-          Navigator.pop(context, (
-            name: taskText,
-            hour: selectedHour,
-            minute: selectedMinute,
-            date: selectedDate,
-            month: selectedMonth.toString(),
-            year: selectedYear.toString(),
-          ));
+          Navigator.pop(context, {
+            'name': taskText,
+            'hour': selectedHour,
+            'minute': selectedMinute,
+            'date': selectedDate,
+            'month': selectedMonth.toString(),
+            'year': selectedYear.toString(),
+            'isCompleted': false,
+          });
         } else {
           setState(() {
             saveClicked = true;

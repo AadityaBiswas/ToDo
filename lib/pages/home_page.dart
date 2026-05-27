@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo/pages/add_task.dart';
 import 'package:todo/pages/todotile.dart';
 import 'package:todo/theme/app_theme.dart';
@@ -11,18 +12,29 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<
-    ({
-      String name,
-      String hour,
-      String minute,
-      String date,
-      String month,
-      String year,
-    })
-  >
-  tasks = [];
+  final taskData = Hive.box("Tasks");
+
+  List<Map<String, dynamic>> tasks = [];
   bool fabTapped = false;
+  @override
+  void initState() {
+    super.initState();
+    _loadTasksFromHive();
+  }
+
+  void _loadTasksFromHive() {
+    var savedData = taskData.get("allTasks");
+    if (savedData != null) {
+      tasks = List<Map<String, dynamic>>.from(
+        savedData.map((item) => Map<String, dynamic>.from(item)),
+      );
+    }
+  }
+
+  void _saveTasks() {
+    taskData.put("allTasks", tasks);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -39,15 +51,17 @@ class _HomePageState extends State<HomePage> {
         final task = tasks[index];
 
         return ToDoTile(
-          taskName: task.name,
-          taskHour: task.hour,
-          taskMinute: task.minute,
-          taskDate: task.date,
-          taskMonth: task.month,
-          taskYear: task.year,
+          taskName: task["name"] ?? "0",
+          taskHour: task["hour"] ?? "0",
+          taskMinute: task["minute"] ?? "0",
+          taskDate: task["date"] ?? "0",
+          taskMonth: task["month"] ?? "0",
+          taskYear: task["year"] ?? "0",
+          isCompleted: task["isCompleted"] ?? false,
           onEditedTask: (updatedTask) {
             setState(() {
               tasks[index] = updatedTask;
+              _saveTasks();
             });
           },
         );
@@ -86,7 +100,8 @@ class _HomePageState extends State<HomePage> {
                 setState(() {
                   fabTapped = false;
                   if (value != null) {
-                    tasks.add(value);
+                    tasks.add(Map<String, dynamic>.from(value));
+                    _saveTasks();
                   }
                 });
               });

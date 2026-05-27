@@ -11,19 +11,11 @@ class ToDoTile extends StatefulWidget {
   final String taskDate;
   final String taskMonth;
   final String taskYear;
-  final void Function(
-    ({
-      String name,
-      String hour,
-      String minute,
-      String date,
-      String month,
-      String year,
-    }),
-  )
-  onEditedTask;
+  final bool isCompleted;
+  final void Function(Map<String, dynamic>) onEditedTask;
   const ToDoTile({
     super.key,
+    required this.isCompleted,
     required this.taskName,
     required this.taskHour,
     required this.taskMinute,
@@ -39,7 +31,6 @@ class ToDoTile extends StatefulWidget {
 class _ToDoTileState extends State<ToDoTile> {
   bool editTask = false;
   String result = "";
-  bool isCompleted = false;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -69,9 +60,16 @@ class _ToDoTileState extends State<ToDoTile> {
         });
       },
       onTap: () {
-        setState(() {
-          isCompleted = !isCompleted;
-        });
+        Map<String, dynamic> updatedTask = {
+          'name': widget.taskName,
+          'hour': widget.taskHour,
+          'minute': widget.taskMinute,
+          'date': widget.taskDate,
+          'month': widget.taskMonth,
+          'year': widget.taskYear,
+          'isCompleted': !widget.isCompleted,
+        };
+        widget.onEditedTask(updatedTask);
       },
       child: SizedBox(
         height: 74,
@@ -82,15 +80,15 @@ class _ToDoTileState extends State<ToDoTile> {
 
   Container topContainer() {
     return Container(
-      margin: EdgeInsets.only(top: isCompleted ? 6 : 0),
+      margin: EdgeInsets.only(top: widget.isCompleted ? 6 : 0),
       padding: EdgeInsets.all(16),
       width: double.infinity,
       height: 60,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        border: isCompleted ? completedBorder() : defaultBorder(),
-        gradient: isCompleted ? null : defaultGradient(),
-        color: isCompleted ? Color(0xFF111216).withOpacity(0.2) : null,
+        border: widget.isCompleted ? completedBorder() : defaultBorder(),
+        gradient: widget.isCompleted ? null : defaultGradient(),
+        color: widget.isCompleted ? Color(0xFF111216).withOpacity(0.2) : null,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -107,7 +105,9 @@ class _ToDoTileState extends State<ToDoTile> {
     return Text(
       widget.taskName,
       style: AppTextStyles.taskTitle.copyWith(
-        color: isCompleted ? AppColors.completedText : AppColors.activeText,
+        color: widget.isCompleted
+            ? AppColors.completedText
+            : AppColors.activeText,
       ),
     );
   }
@@ -122,7 +122,9 @@ class _ToDoTileState extends State<ToDoTile> {
           ? "${widget.taskHour}h"
           : "${widget.taskHour}h ${widget.taskMinute}m",
       style: AppTextStyles.taskTime.copyWith(
-        color: isCompleted ? AppColors.completedText : AppColors.secondaryText,
+        color: widget.isCompleted
+            ? AppColors.completedText
+            : AppColors.secondaryText,
       ),
     );
   }
@@ -154,7 +156,7 @@ class _ToDoTileState extends State<ToDoTile> {
   Container bottomContainer() {
     return Container(
       width: double.infinity,
-      height: isCompleted ? 0 : 66,
+      height: widget.isCompleted ? 0 : 66,
       decoration: BoxDecoration(
         color: AppColors.tileBottom,
         borderRadius: BorderRadius.circular(12),
