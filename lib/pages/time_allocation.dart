@@ -21,7 +21,7 @@ class _TimeAllocationState extends State<TimeAllocation> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialHour != "0" && widget.initialMinute != "0") {
+    if (widget.initialHour != "0" || widget.initialMinute != "0") {
       hourController.text = widget.initialHour;
       minuteController.text = widget.initialMinute;
     }

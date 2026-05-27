@@ -3,8 +3,8 @@ import 'package:todo/theme/app_theme.dart';
 
 class DateAllocation extends StatefulWidget {
   final String finalDay;
-  final int finalMonth;
-  final int finalYear;
+  final String finalMonth;
+  final String finalYear;
   const DateAllocation({
     super.key,
     required this.finalDay,
@@ -18,8 +18,8 @@ class DateAllocation extends StatefulWidget {
 
 class _DateAllocationState extends State<DateAllocation> {
   late final DateTime today;
-  late int fixedMonth;
-  late int fixedYear;
+  late String fixedMonth;
+  late String fixedYear;
   TextEditingController dayController = TextEditingController();
   int selectedQuickOption = -1;
   bool saveDate = false;
@@ -251,8 +251,8 @@ class _DateAllocationState extends State<DateAllocation> {
       } else {
         selectedQuickOption = index;
         dayController.text = targetDate.day.toString();
-        fixedMonth = targetDate.month;
-        fixedYear = targetDate.year;
+        fixedMonth = targetDate.month.toString();
+        fixedYear = targetDate.year.toString();
       }
     });
   }

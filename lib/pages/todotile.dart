@@ -1,40 +1,88 @@
 // ignore_for_file: deprecated_member_use
 
 import 'package:flutter/material.dart';
+import 'package:todo/pages/add_task.dart';
 import 'package:todo/theme/app_theme.dart';
 
 class ToDoTile extends StatefulWidget {
   final String taskName;
   final String taskHour;
   final String taskMinute;
+  final String taskDate;
+  final String taskMonth;
+  final String taskYear;
+  final void Function(
+    ({
+      String name,
+      String hour,
+      String minute,
+      String date,
+      String month,
+      String year,
+    }),
+  )
+  onEditedTask;
   const ToDoTile({
     super.key,
     required this.taskName,
     required this.taskHour,
     required this.taskMinute,
+    required this.taskDate,
+    required this.taskMonth,
+    required this.taskYear,
+    required this.onEditedTask,
   });
   @override
   State<ToDoTile> createState() => _ToDoTileState();
 }
 
 class _ToDoTileState extends State<ToDoTile> {
+  bool editTask = false;
   String result = "";
   bool isCompleted = false;
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onLongPress: () async {
+        setState(() {
+          editTask = true;
+        });
+        final result = await showModalBottomSheet(
+          context: context,
+          builder: (context) {
+            return AddTask(
+              editTask: editTask,
+              taskName: widget.taskName,
+              taskHour: widget.taskHour,
+              taskMinute: widget.taskMinute,
+              taskDate: widget.taskDate,
+              taskMonth: widget.taskMonth,
+              taskYear: widget.taskYear,
+            );
+          },
+        );
+        if (result != null) {
+          widget.onEditedTask(result);
+        }
+        setState(() {
+          editTask = false;
+        });
+      },
       onTap: () {
         setState(() {
           isCompleted = !isCompleted;
         });
       },
-      child: Stack(children: [bottomContainer(), topContainer()]),
+      child: SizedBox(
+        height: 74,
+        child: Stack(children: [bottomContainer(), topContainer()]),
+      ),
     );
   }
 
   Container topContainer() {
     return Container(
-      margin: EdgeInsets.only(top: isCompleted ? 6 : 0, bottom: 8),
+      margin: EdgeInsets.only(top: isCompleted ? 6 : 0),
       padding: EdgeInsets.all(16),
       width: double.infinity,
       height: 60,
@@ -104,18 +152,13 @@ class _ToDoTileState extends State<ToDoTile> {
   }
 
   Container bottomContainer() {
-    if (isCompleted) {
-      return Container();
-    } else {
-      return Container(
-        width: double.infinity,
-        height: 66,
-        decoration: BoxDecoration(
-          color: AppColors.tileBottom,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        margin: EdgeInsets.only(bottom: 8),
-      );
-    }
+    return Container(
+      width: double.infinity,
+      height: isCompleted ? 0 : 66,
+      decoration: BoxDecoration(
+        color: AppColors.tileBottom,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
   }
 }

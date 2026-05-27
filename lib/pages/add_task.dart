@@ -4,27 +4,62 @@ import 'category_selector.dart';
 import 'scheduling_section.dart';
 
 class AddTask extends StatefulWidget {
-  const AddTask({super.key});
+  final bool editTask;
+  final String taskName;
+  final String taskHour;
+  final String taskMinute;
+  final String taskDate;
+  final String taskMonth;
+  final String taskYear;
+  const AddTask({
+    super.key,
+    required this.editTask,
+    required this.taskName,
+    required this.taskHour,
+    required this.taskMinute,
+    required this.taskDate,
+    required this.taskMonth,
+    required this.taskYear,
+  });
 
   @override
   State<AddTask> createState() => _AddTaskState();
 }
 
 class _AddTaskState extends State<AddTask> {
-  final TextEditingController _taskName = TextEditingController();
+  late TextEditingController _taskName;
   bool saveClicked = false;
-  int selectedCategory = -1;
+  // int selectedCategory = -1;
   bool dateTapped = true;
   bool timeTapped = false;
-  String selectedHour = "0";
-  String selectedMinute = "0";
-  String selectedDate = DateTime.now().day.toString();
-  int selectedMonth = DateTime.now().month;
-  int selectedYear = DateTime.now().year;
+  late String selectedHour;
+  late String selectedMinute;
+  late String selectedDate;
+  late String selectedMonth;
+  late String selectedYear;
+  @override
+  void initState() {
+    super.initState();
+    _taskName = widget.taskName == "0"
+        ? TextEditingController()
+        : TextEditingController(text: widget.taskName);
+    selectedHour = widget.taskHour == "0" ? "0" : widget.taskHour;
+    selectedMinute = widget.taskMinute == "0" ? "0" : widget.taskMinute;
+    selectedDate = widget.editTask
+        ? widget.taskDate
+        : DateTime.now().day.toString();
+    selectedMonth = widget.editTask
+        ? widget.taskMonth
+        : DateTime.now().month.toString();
+    selectedYear = widget.editTask
+        ? widget.taskYear
+        : DateTime.now().year.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 396,
+      height: 320,
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       decoration: BoxDecoration(
@@ -40,15 +75,14 @@ class _AddTaskState extends State<AddTask> {
           dragHandle(),
           taskName(),
 
-          CategorySelector(
-            selectedCategory: selectedCategory,
-            onCategorySelected: (newIndex) {
-              setState(() {
-                selectedCategory = newIndex;
-              });
-            },
-          ),
-
+          // CategorySelector(
+          //   selectedCategory: selectedCategory,
+          //   onCategorySelected: (newIndex) {
+          //     setState(() {
+          //       selectedCategory = newIndex;
+          //     });
+          //   },
+          // ),
           SchedulingSection(
             selectedDate: selectedDate,
             selectedMonth: selectedMonth,
@@ -65,8 +99,8 @@ class _AddTaskState extends State<AddTask> {
             onDateSelected: ((date, month, year) {
               setState(() {
                 selectedDate = date;
-                selectedMonth = month;
-                selectedYear = year;
+                selectedMonth = month.toString();
+                selectedYear = year.toString();
                 dateTapped = true;
               });
             }),
@@ -76,9 +110,11 @@ class _AddTaskState extends State<AddTask> {
               });
             },
             onTimeSelected: ((hour, minute) {
-              selectedHour = hour;
-              selectedMinute = minute;
-              timeTapped = true;
+              setState(() {
+                selectedHour = hour;
+                selectedMinute = minute;
+                timeTapped = true;
+              });
             }),
           ),
           saveTaskButton(context),
@@ -99,6 +135,9 @@ class _AddTaskState extends State<AddTask> {
             name: taskText,
             hour: selectedHour,
             minute: selectedMinute,
+            date: selectedDate,
+            month: selectedMonth.toString(),
+            year: selectedYear.toString(),
           ));
         } else {
           setState(() {
@@ -108,7 +147,6 @@ class _AddTaskState extends State<AddTask> {
           setState(() {
             saveClicked = false;
           });
-          print("Unable to save: Task name is empty.");
         }
       },
       child: Stack(
@@ -132,7 +170,7 @@ class _AddTaskState extends State<AddTask> {
             ),
             child: Center(
               child: Text(
-                "Save",
+                "Save Task",
                 style: TextStyle(
                   fontFamily: "HankenGrostek",
                   fontSize: 24,

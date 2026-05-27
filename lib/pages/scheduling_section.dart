@@ -5,8 +5,8 @@ import 'package:todo/theme/app_theme.dart';
 
 class SchedulingSection extends StatelessWidget {
   final String selectedDate;
-  final int selectedMonth;
-  final int selectedYear;
+  final String selectedMonth;
+  final String selectedYear;
   final bool dateTapped;
   final bool timeTapped;
   final ValueChanged<bool> onDateToggled;
@@ -14,7 +14,7 @@ class SchedulingSection extends StatelessWidget {
   final Function(String hour, String minute) onTimeSelected;
   final String selectedHour;
   final String selectedMinute;
-  final Function(String date, int month, int year) onDateSelected;
+  final Function(String date, String month, String year) onDateSelected;
 
   const SchedulingSection({
     required this.selectedDate,
@@ -116,7 +116,9 @@ class SchedulingSection extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         final result =
-            await showModalBottomSheet<({String day, int month, int year})>(
+            await showModalBottomSheet<
+              ({String day, String month, String year})
+            >(
               context: context,
               builder: ((context) {
                 return DateAllocation(
@@ -156,8 +158,8 @@ class SchedulingSection extends StatelessWidget {
             SizedBox(height: 4),
             Text(
               selectedDate == DateTime.now().day.toString() &&
-                      selectedMonth == DateTime.now().month &&
-                      selectedYear == DateTime.now().year
+                      selectedMonth == DateTime.now().month.toString() &&
+                      selectedYear == DateTime.now().year.toString()
                   ? "Today"
                   : "$selectedDate.${selectedMonth.toString()}.$selectedYear",
               style: TextStyle(

@@ -11,7 +11,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  List<({String name, String hour, String minute})> tasks = [];
+  List<
+    ({
+      String name,
+      String hour,
+      String minute,
+      String date,
+      String month,
+      String year,
+    })
+  >
+  tasks = [];
   bool fabTapped = false;
   @override
   Widget build(BuildContext context) {
@@ -32,6 +42,14 @@ class _HomePageState extends State<HomePage> {
           taskName: task.name,
           taskHour: task.hour,
           taskMinute: task.minute,
+          taskDate: task.date,
+          taskMonth: task.month,
+          taskYear: task.year,
+          onEditedTask: (updatedTask) {
+            setState(() {
+              tasks[index] = updatedTask;
+            });
+          },
         );
       },
     );
@@ -54,7 +72,15 @@ class _HomePageState extends State<HomePage> {
               showModalBottomSheet(
                 context: context,
                 builder: (context) {
-                  return const AddTask();
+                  return const AddTask(
+                    editTask: false,
+                    taskName: "0",
+                    taskHour: "0",
+                    taskMinute: "0",
+                    taskDate: "0",
+                    taskMonth: "0",
+                    taskYear: "0",
+                  );
                 },
               ).then((value) {
                 setState(() {
