@@ -55,22 +55,22 @@ class _HomePageState extends State<HomePage> {
         children: [
           Container(
             margin: EdgeInsets.only(top: 70),
-            height: 50,
+            height: 55,
             decoration: BoxDecoration(
               color: AppColors.bgBottomBar,
               boxShadow: [
                 BoxShadow(
-                  color: Color(0xFFA6A6A6).withOpacity(0.05),
+                  color: Color(0xFFA6A6A6).withOpacity(0.02),
                   inset: true,
-                  offset: Offset(0, 3),
-                  spreadRadius: -3,
-                  blurRadius: 5,
+                  offset: Offset(0, 2),
+                  blurRadius: 4,
+                  spreadRadius: -2,
                 ),
               ],
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 20),
+            padding: const EdgeInsets.only(bottom: 5),
             child: floatingActionButton(context),
           ),
         ],
@@ -104,112 +104,106 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Positioned floatingActionButton(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: SizedBox(
-          height: 100,
-          width: 100,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                fabTapped = true;
-              });
-              showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return const AddTask(
-                    editTask: false,
-                    taskName: "0",
-                    taskHour: "0",
-                    taskMinute: "0",
-                    taskDate: "0",
-                    taskMonth: "0",
-                    taskYear: "0",
-                  );
-                },
-              ).then((value) {
-                setState(() {
-                  fabTapped = false;
-                  if (value != null) {
-                    tasks.add(Map<String, dynamic>.from(value));
-                    _saveTasks();
-                  }
-                });
-              });
+  Widget floatingActionButton(BuildContext context) {
+    return SizedBox(
+      height: 100,
+      width: 100,
+      child: GestureDetector(
+        onTap: () async {
+          setState(() {
+            fabTapped = !fabTapped;
+          });
+          await Future.delayed(const Duration(milliseconds: 60));
+          showModalBottomSheet(
+            context: context,
+            builder: (context) {
+              return const AddTask(
+                editTask: false,
+                taskName: "0",
+                taskHour: "0",
+                taskMinute: "0",
+                taskDate: "0",
+                taskMonth: "0",
+                taskYear: "0",
+              );
             },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 80,
-                  height: 80,
-                  margin: EdgeInsets.only(top: 25),
-                  decoration: BoxDecoration(
-                    color: AppColors.bgBottomBar,
-                    borderRadius: BorderRadius.circular(100),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFFA6A6A6).withOpacity(0.05),
-                        inset: true,
-                        offset: Offset(0, 3),
-                        spreadRadius: -3,
-                        blurRadius: 5,
-                      ),
-                    ],
+          ).then((value) async {
+            await Future.delayed(const Duration(milliseconds: 400));
+            setState(() {
+              fabTapped = false;
+              if (value != null) {
+                tasks.add(Map<String, dynamic>.from(value));
+                _saveTasks();
+              }
+            });
+          });
+        },
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            Container(
+              width: 80,
+              height: 80,
+              margin: EdgeInsets.only(top: 8),
+              decoration: BoxDecoration(
+                color: AppColors.bgBottomBar,
+                borderRadius: BorderRadius.circular(100),
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0xFFA6A6A6).withOpacity(0.05),
+                    inset: true,
+                    offset: Offset(0, 3),
+                    spreadRadius: -3,
+                    blurRadius: 5,
                   ),
-                ),
-                Container(
-                  width: 64,
-                  height: fabTapped ? 0 : 64,
-                  margin: EdgeInsets.only(top: 20),
-                  decoration: BoxDecoration(
-                    color: Color(0xFF404040),
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                ),
-                Container(
-                  height: 64,
-                  width: 64,
-                  margin: EdgeInsets.only(top: fabTapped ? 8 : 0),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: fabTapped
-                        ? Color(0xFF111216).withOpacity(0.2)
-                        : Color(0xFF666666),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFFB2B2B2).withOpacity(0.25),
-                        blurRadius: 4,
-                        offset: Offset(0, 2),
-                        inset: true,
-                      ),
-                      BoxShadow(
-                        color: Color(0xFF333333).withOpacity(0.25),
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                      ),
-                      BoxShadow(
-                        color: Color(0xFF3D3D3D).withOpacity(0.25),
-                        blurRadius: 4,
-                        offset: Offset(0, 4),
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.add_rounded,
-                    color: fabTapped ? AppColors.secondaryText : Colors.white,
-                    size: 32,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Container(
+              width: 64,
+              height: fabTapped ? 0 : 64,
+              margin: EdgeInsets.only(top: 10),
+              decoration: BoxDecoration(
+                color: Color(0xFF404040),
+                borderRadius: BorderRadius.circular(100),
+              ),
+            ),
+            Container(
+              height: 64,
+              width: 64,
+              margin: EdgeInsets.only(top: fabTapped ? 16 : 0),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: fabTapped ? AppColors.bgLighter : Color(0xFF666666),
+                boxShadow: fabTapped
+                    ? [
+                        BoxShadow(
+                          color: Color.fromARGB(
+                            255,
+                            122,
+                            122,
+                            122,
+                          ).withOpacity(0.1),
+                          blurRadius: 4.5,
+                          inset: true,
+                          offset: Offset(0, -3),
+                        ),
+                        BoxShadow(
+                          color: Color(0xFF0d0d0d).withOpacity(0.16),
+                          blurRadius: 5,
+                          inset: true,
+                          offset: Offset(0, 1),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Icon(
+                Icons.add_rounded,
+                color: fabTapped ? AppColors.secondaryText : Colors.white,
+                size: 32,
+              ),
+            ),
+          ],
         ),
       ),
     );
