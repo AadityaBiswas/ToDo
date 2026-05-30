@@ -1,8 +1,7 @@
-// ignore_for_file: deprecated_member_use
-
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:todo/pages/add_task.dart';
 import 'package:todo/theme/app_theme.dart';
+import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 
 class ToDoTile extends StatefulWidget {
   final String taskName;
@@ -33,6 +32,8 @@ class _ToDoTileState extends State<ToDoTile> {
   String result = "";
   @override
   Widget build(BuildContext context) {
+    double screenWidth = MediaQuery.of(context).size.width;
+
     return GestureDetector(
       onLongPress: () async {
         setState(() {
@@ -71,24 +72,57 @@ class _ToDoTileState extends State<ToDoTile> {
         };
         widget.onEditedTask(updatedTask);
       },
-      child: SizedBox(
-        height: 74,
-        child: Stack(children: [bottomContainer(), topContainer()]),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          base(screenWidth),
+          bottomContainer(screenWidth),
+          topContainer(screenWidth),
+        ],
       ),
     );
   }
 
-  Container topContainer() {
+  Container base(double screenWidth) {
     return Container(
-      margin: EdgeInsets.only(top: widget.isCompleted ? 6 : 0),
+      margin: EdgeInsets.only(top: 22),
+      height: 62,
+      width: screenWidth - 40 - 15,
+      decoration: BoxDecoration(
+        color: AppColors.bgLight,
+        borderRadius: BorderRadius.circular(12),
+      ),
+    );
+  }
+
+  Container bottomContainer(double screenWidth) {
+    return Container(
+      margin: EdgeInsets.only(top: 22),
+      width: screenWidth - 40 - 20,
+      height: widget.isCompleted ? 0 : 60,
+      decoration: BoxDecoration(
+        color: AppColors.bgLighter,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: widget.isCompleted ? null : defaultBoxShadowBottomTile(),
+      ),
+    );
+  }
+
+  Container topContainer(double screenWidth) {
+    return Container(
+      margin: EdgeInsets.only(top: widget.isCompleted ? 22 : 0),
       padding: EdgeInsets.all(16),
-      width: double.infinity,
+      width: screenWidth - 40 - 20,
       height: 60,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: widget.isCompleted ? completedBorder() : defaultBorder(),
-        gradient: widget.isCompleted ? null : defaultGradient(),
-        color: widget.isCompleted ? Color(0xFF111216).withOpacity(0.2) : null,
+        borderRadius: BorderRadius.circular(16),
+        // gradient: widget.isCompleted ? null : defaultGradient(),
+        boxShadow: widget.isCompleted
+            ? completedBoxShadowTopTile()
+            : defaultBoxShadowTopTile(),
+        color: widget.isCompleted
+            ? AppColors.bgCompleted
+            : AppColors.bgLightest,
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -106,7 +140,7 @@ class _ToDoTileState extends State<ToDoTile> {
       widget.taskName,
       style: AppTextStyles.taskTitle.copyWith(
         color: widget.isCompleted
-            ? AppColors.completedText
+            ? AppColors.inactiveText
             : AppColors.activeText,
       ),
     );
@@ -123,10 +157,65 @@ class _ToDoTileState extends State<ToDoTile> {
           : "${widget.taskHour}h ${widget.taskMinute}m",
       style: AppTextStyles.taskTime.copyWith(
         color: widget.isCompleted
-            ? AppColors.completedText
+            ? AppColors.inactiveText
             : AppColors.secondaryText,
       ),
     );
+  }
+
+  List<BoxShadow> defaultBoxShadowBottomTile() {
+    return [
+      BoxShadow(
+        color: Color(0xFF0A0A0A).withOpacity(0.25),
+        spreadRadius: 2,
+        blurRadius: 4,
+        offset: Offset(0, 4),
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(0.25),
+        blurRadius: 4,
+        offset: Offset(0, 4),
+      ),
+    ];
+  }
+
+  List<BoxShadow> defaultBoxShadowTopTile() {
+    return [
+      BoxShadow(
+        color: Color(0xFF999999).withOpacity(0.25),
+        blurRadius: 4,
+        inset: true,
+        offset: Offset(0, 2),
+      ),
+      BoxShadow(
+        color: Color(0xFF262626).withOpacity(0.25),
+        spreadRadius: 2,
+        blurRadius: 4,
+        offset: Offset(0, 4),
+      ),
+      BoxShadow(
+        color: Color(0xFF1A1A1A).withOpacity(0.25),
+        blurRadius: 4,
+        offset: Offset(0, 4),
+      ),
+    ];
+  }
+
+  List<BoxShadow> completedBoxShadowTopTile() {
+    return [
+      BoxShadow(
+        color: Color(0xFF0d0d0d).withOpacity(0.25),
+        blurRadius: 4,
+        inset: true,
+        offset: Offset(0, 0.5),
+      ),
+      BoxShadow(
+        color: Color(0xFF595959).withOpacity(0.25),
+        blurRadius: 4,
+        inset: true,
+        offset: Offset(0, -3),
+      ),
+    ];
   }
 
   LinearGradient defaultGradient() {
@@ -134,33 +223,6 @@ class _ToDoTileState extends State<ToDoTile> {
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
       colors: [Color(0xFF535459), Color(0xFF494A4E), Color(0xFF414247)],
-    );
-  }
-
-  Border defaultBorder() {
-    return Border(
-      top: BorderSide(color: Colors.white.withAlpha(48), width: 1.5),
-      left: BorderSide(color: Colors.white.withAlpha(48), width: 1.5),
-    );
-  }
-
-  Border completedBorder() {
-    return Border(
-      top: BorderSide(color: Colors.black, width: 3),
-      left: BorderSide(color: Colors.black, width: 3),
-      bottom: BorderSide(color: Colors.black, width: 0.5),
-      right: BorderSide(color: Colors.black, width: 0.5),
-    );
-  }
-
-  Container bottomContainer() {
-    return Container(
-      width: double.infinity,
-      height: widget.isCompleted ? 0 : 66,
-      decoration: BoxDecoration(
-        color: AppColors.tileBottom,
-        borderRadius: BorderRadius.circular(12),
-      ),
     );
   }
 }
