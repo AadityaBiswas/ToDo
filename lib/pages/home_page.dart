@@ -60,11 +60,15 @@ class _HomePageState extends State<HomePage> {
               color: AppColors.bgBottomBar,
               boxShadow: [
                 BoxShadow(
-                  color: Color(0xFFA6A6A6).withOpacity(0.02),
+                  color: Colors.white,
                   inset: true,
                   offset: Offset(0, 2),
+                  blurRadius: 10,
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15),
+                  offset: Offset(0, -6),
                   blurRadius: 4,
-                  spreadRadius: -2,
                 ),
               ],
             ),
@@ -132,7 +136,7 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               fabTapped = false;
               if (value != null) {
-                tasks.add(Map<String, dynamic>.from(value));
+                tasks.insert(0, Map<String, dynamic>.from(value));
                 _saveTasks();
               }
             });
@@ -150,11 +154,15 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(100),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFFA6A6A6).withOpacity(0.05),
+                    color: Colors.white,
                     inset: true,
-                    offset: Offset(0, 3),
-                    spreadRadius: -3,
-                    blurRadius: 5,
+                    offset: Offset(0, 4),
+                    blurRadius: 4,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.15),
+                    offset: Offset(0, -6),
+                    blurRadius: 4,
                   ),
                 ],
               ),
@@ -164,26 +172,27 @@ class _HomePageState extends State<HomePage> {
               height: fabTapped ? 0 : 64,
               margin: EdgeInsets.only(top: 10),
               decoration: BoxDecoration(
-                color: Color(0xFF404040),
+                color: AppColors.bgFabDark,
                 borderRadius: BorderRadius.circular(100),
+                border: Border(
+                  right: BorderSide(color: Colors.black, width: 0.2),
+                  left: BorderSide(color: Colors.black, width: 0.2),
+                  bottom: BorderSide(color: Colors.black, width: 0.5),
+                ),
               ),
             ),
-            Container(
+            AnimatedContainer(
+              duration: Duration(milliseconds: 50),
               height: 64,
               width: 64,
               margin: EdgeInsets.only(top: fabTapped ? 16 : 0),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: fabTapped ? AppColors.bgLighter : Color(0xFF666666),
+                color: fabTapped ? AppColors.bgLighter : AppColors.bgFabLight,
                 boxShadow: fabTapped
                     ? [
                         BoxShadow(
-                          color: Color.fromARGB(
-                            255,
-                            122,
-                            122,
-                            122,
-                          ).withOpacity(0.1),
+                          color: Color(0xFF7A7A7A).withOpacity(0.1),
                           blurRadius: 4.5,
                           inset: true,
                           offset: Offset(0, -3),
@@ -195,11 +204,23 @@ class _HomePageState extends State<HomePage> {
                           offset: Offset(0, 1),
                         ),
                       ]
-                    : null,
+                    : [
+                        BoxShadow(
+                          color: Color(0xFF000000).withOpacity(0.10),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Color(0xFFFFFFFF).withOpacity(0.25),
+                          blurRadius: 8,
+                          inset: true,
+                          offset: Offset(0, 6),
+                        ),
+                      ],
               ),
               child: Icon(
                 Icons.add_rounded,
-                color: fabTapped ? AppColors.secondaryText : Colors.white,
+                color: fabTapped ? Colors.black.withOpacity(0.5) : Colors.white,
                 size: 32,
               ),
             ),

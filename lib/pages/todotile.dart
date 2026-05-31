@@ -72,51 +72,58 @@ class _ToDoTileState extends State<ToDoTile> {
         };
         widget.onEditedTask(updatedTask);
       },
-      child: Stack(
-        alignment: Alignment.topCenter,
-        children: [
-          base(screenWidth),
-          bottomContainer(screenWidth),
-          topContainer(screenWidth),
-        ],
+      child: SizedBox(
+        height: 80,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            base(screenWidth),
+            bottomContainer(screenWidth),
+            topContainer(screenWidth),
+          ],
+        ),
       ),
     );
   }
 
-  Container base(double screenWidth) {
-    return Container(
-      margin: EdgeInsets.only(top: 14, bottom: 5),
-      height: 64,
-      width: screenWidth - 40 - 15,
-      decoration: BoxDecoration(
-        color: AppColors.bgLight,
-        borderRadius: BorderRadius.circular(12),
+  Widget base(double screenWidth) {
+    return Positioned(
+      bottom: 1,
+      child: Container(
+        height: 62,
+        width: screenWidth - 40 - 10,
+        decoration: BoxDecoration(
+          color: AppColors.bgLight,
+          borderRadius: BorderRadius.circular(18),
+        ),
       ),
     );
   }
 
-  Container bottomContainer(double screenWidth) {
-    return Container(
+  AnimatedContainer bottomContainer(double screenWidth) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 20),
       margin: EdgeInsets.only(top: 12),
       width: screenWidth - 40 - 20,
       height: widget.isCompleted ? 0 : 60,
       decoration: BoxDecoration(
         color: AppColors.bgLighter,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: widget.isCompleted ? null : defaultBoxShadowBottomTile(),
+        boxShadow: defaultBoxShadowBottomTile(),
       ),
     );
   }
 
-  Container topContainer(double screenWidth) {
-    return Container(
-      margin: EdgeInsets.only(top: widget.isCompleted ? 16 : 0),
+  AnimatedContainer topContainer(double screenWidth) {
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 80),
+      curve: Curves.easeInOutCubic,
+      margin: EdgeInsets.only(top: widget.isCompleted ? 21 : 6),
       padding: EdgeInsets.all(16),
       width: screenWidth - 40 - 20,
-      height: 60,
+      height: widget.isCompleted ? 54 : 60,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        // gradient: widget.isCompleted ? null : defaultGradient(),
         boxShadow: widget.isCompleted
             ? completedBoxShadowTopTile()
             : defaultBoxShadowTopTile(),
@@ -166,15 +173,9 @@ class _ToDoTileState extends State<ToDoTile> {
   List<BoxShadow> defaultBoxShadowBottomTile() {
     return [
       BoxShadow(
-        color: Color(0xFF0A0A0A).withOpacity(0.25),
-        spreadRadius: 2,
-        blurRadius: 4,
-        offset: Offset(0, 4),
-      ),
-      BoxShadow(
-        color: Colors.black.withOpacity(0.25),
-        blurRadius: 4,
-        offset: Offset(0, 4),
+        color: Colors.black.withOpacity(0.3),
+        blurRadius: 5,
+        offset: Offset(0, 2),
       ),
     ];
   }
@@ -182,19 +183,14 @@ class _ToDoTileState extends State<ToDoTile> {
   List<BoxShadow> defaultBoxShadowTopTile() {
     return [
       BoxShadow(
-        color: Color(0xFF999999).withOpacity(0.20),
+        color: Color(0xFFFFFFFF).withOpacity(0.25),
         blurRadius: 8,
         inset: true,
         offset: Offset(0, 6),
       ),
       BoxShadow(
-        color: Color(0xFF262626).withOpacity(0.25),
+        color: Color(0xFF262626).withOpacity(0.05),
         spreadRadius: 2,
-        blurRadius: 4,
-        offset: Offset(0, 4),
-      ),
-      BoxShadow(
-        color: Color(0xFF1A1A1A).withOpacity(0.25),
         blurRadius: 4,
         offset: Offset(0, 4),
       ),
@@ -204,16 +200,16 @@ class _ToDoTileState extends State<ToDoTile> {
   List<BoxShadow> completedBoxShadowTopTile() {
     return [
       BoxShadow(
-        color: Color(0xFF0d0d0d).withOpacity(0.18),
+        color: Colors.black.withValues(alpha: 0.4),
         blurRadius: 6,
         inset: true,
-        offset: Offset(0, 1),
+        offset: Offset(0, 3),
       ),
       BoxShadow(
-        color: Color(0xFF595959).withOpacity(0.17),
-        blurRadius: 8,
+        color: Colors.white.withValues(alpha: 0.45),
+        blurRadius: 12,
         inset: true,
-        offset: Offset(0, -4),
+        offset: Offset(0, -2),
       ),
     ];
   }
