@@ -1,10 +1,11 @@
 // ignore_for_file: unused_local_variable
-
+import 'package:rive/rive.dart' as rive;
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:todo/pages/home_page.dart';
 
 void main() async {
+  await rive.RiveNative.init();
   await Hive.initFlutter();
   var box = await Hive.openBox("Tasks");
   runApp(const MyApp());

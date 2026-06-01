@@ -17,6 +17,7 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, dynamic>> tasks = [];
   bool fabTapped = false;
+  int? activeTimerIndex;
   @override
   void initState() {
     super.initState();
@@ -97,6 +98,16 @@ class _HomePageState extends State<HomePage> {
           taskMonth: task["month"] ?? "0",
           taskYear: task["year"] ?? "0",
           isCompleted: task["isCompleted"] ?? false,
+          isTimerActive: activeTimerIndex == index,
+          onTimerTap: () {
+            setState(() {
+              if (activeTimerIndex == index) {
+                activeTimerIndex = null;
+              } else {
+                activeTimerIndex = index;
+              }
+            });
+          },
           onEditedTask: (updatedTask) {
             setState(() {
               tasks[index] = updatedTask;

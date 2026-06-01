@@ -1,9 +1,12 @@
+import 'package:rive/rive.dart' as rive;
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:todo/pages/add_task.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'package:todo/pages/timer.dart';
 
 class ToDoTile extends StatefulWidget {
+  final bool isTimerActive;
   final String taskName;
   final String taskHour;
   final String taskMinute;
@@ -11,9 +14,12 @@ class ToDoTile extends StatefulWidget {
   final String taskMonth;
   final String taskYear;
   final bool isCompleted;
+  final VoidCallback onTimerTap;
   final void Function(Map<String, dynamic>) onEditedTask;
   const ToDoTile({
     super.key,
+    required this.onTimerTap,
+    required this.isTimerActive,
     required this.isCompleted,
     required this.taskName,
     required this.taskHour,
@@ -28,8 +34,26 @@ class ToDoTile extends StatefulWidget {
 }
 
 class _ToDoTileState extends State<ToDoTile> {
+  bool showRiveEditTaskBorder = false;
   bool editTask = false;
   String result = "";
+  bool tapOnce = false;
+  late final rive.FileLoader riveFileLoader;
+  @override
+  void initState() {
+    super.initState();
+    riveFileLoader = rive.FileLoader.fromAsset(
+      'assets/animations/bottombaselongclick.riv',
+      riveFactory: rive.Factory.rive,
+    );
+  }
+
+  @override
+  void dispose() {
+    riveFileLoader.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -38,6 +62,7 @@ class _ToDoTileState extends State<ToDoTile> {
       onLongPress: () async {
         setState(() {
           editTask = true;
+          showRiveEditTaskBorder = true;
         });
         final result = await showModalBottomSheet(
           context: context,
@@ -60,17 +85,88 @@ class _ToDoTileState extends State<ToDoTile> {
           editTask = false;
         });
       },
-      onTap: () {
-        Map<String, dynamic> updatedTask = {
-          'name': widget.taskName,
-          'hour': widget.taskHour,
-          'minute': widget.taskMinute,
-          'date': widget.taskDate,
-          'month': widget.taskMonth,
-          'year': widget.taskYear,
-          'isCompleted': !widget.isCompleted,
-        };
-        widget.onEditedTask(updatedTask);
+      onTap: () async {
+        if (widget.taskHour == "0" && widget.taskMinute == "0" ||
+            widget.isCompleted) {
+          Map<String, dynamic> updatedTask = {
+            'name': widget.taskName,
+            'hour': widget.taskHour,
+            'minute': widget.taskMinute,
+            'date': widget.taskDate,
+            'month': widget.taskMonth,
+            'year': widget.taskYear,
+            'isCompleted': !widget.isCompleted,
+          };
+          widget.onEditedTask(updatedTask);
+        } else {
+          if (widget.isTimerActive) {
+            final result = await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TimerScreen(
+                  timeHour: widget.taskHour,
+                  timeMinute: widget.taskMinute,
+                ),
+              ),
+            );
+            widget.onTimerTap();
+            if (result != null) {
+              int elapsedHour = int.tryParse(result['hour'].toString()) ?? 0;
+              int elapsedMinute =
+                  int.tryParse(result['minute'].toString()) ?? 0;
+              int allocatedHour = int.tryParse(widget.taskHour) ?? 0;
+              int allocatedMinute = int.tryParse(widget.taskMinute) ?? 0;
+
+              int totalElapsed = (elapsedHour * 60) + elapsedMinute;
+              int totalAllocated = (allocatedHour * 60) + allocatedMinute;
+
+              bool isNowCompleted = widget.isCompleted;
+
+              if (totalElapsed >= totalAllocated) {
+                isNowCompleted = true;
+
+                Map<String, dynamic> updatedTask = {
+                  'name': widget.taskName,
+                  'hour': elapsedHour.toString(),
+                  'minute': elapsedMinute.toString(),
+                  'date': widget.taskDate,
+                  'month': widget.taskMonth,
+                  'year': widget.taskYear,
+                  'isCompleted': isNowCompleted,
+                };
+
+                widget.onEditedTask(updatedTask);
+              } else {
+                int differenceInMinutes = totalAllocated - totalElapsed;
+
+                int finalHours = differenceInMinutes ~/ 60;
+                int finalMinutes = differenceInMinutes % 60;
+
+                Map<String, dynamic> updatedTask = {
+                  'name': widget.taskName,
+                  'hour': finalHours.toString(),
+                  'minute': finalMinutes.toString(),
+                  'date': widget.taskDate,
+                  'month': widget.taskMonth,
+                  'year': widget.taskYear,
+                  'isCompleted': isNowCompleted,
+                };
+
+                widget.onEditedTask(updatedTask);
+              }
+            }
+          } else {
+            setState(() {
+              tapOnce = true;
+            });
+            await Future.delayed(Duration(milliseconds: 120));
+            widget.onTimerTap();
+            await Future.delayed(Duration(milliseconds: 60));
+            setState(() {
+              tapOnce = false;
+            });
+          }
+        }
       },
       child: SizedBox(
         height: 80,
@@ -88,14 +184,32 @@ class _ToDoTileState extends State<ToDoTile> {
 
   Widget base(double screenWidth) {
     return Positioned(
-      bottom: 1,
+      bottom: 0,
       child: Container(
         height: 62,
         width: screenWidth - 40 - 10,
         decoration: BoxDecoration(
-          color: AppColors.bgLight,
+          color: widget.isTimerActive ? Color(0xFF0D0D0D) : AppColors.bgLight,
           borderRadius: BorderRadius.circular(18),
         ),
+        // child: ClipRRect(
+        //   borderRadius: BorderRadius.circular(18),
+        //   child: AnimatedOpacity(
+        //     opacity: showRiveEditTaskBorder ? 1.0 : 0.0,
+        //     duration: const Duration(milliseconds: 150),
+        //     child: rive.RiveWidgetBuilder(
+        //       fileLoader: riveFileLoader,
+        //       builder: (context, state) => switch (state) {
+        //         rive.RiveLoading() => const SizedBox.shrink(),
+        //         rive.RiveFailed() => const SizedBox.shrink(),
+        //         rive.RiveLoaded() => rive.RiveWidget(
+        //           controller: state.controller,
+        //           fit: rive.Fit.cover,
+        //         ),
+        //       },
+        //     ),
+        //   ),
+        // ),
       ),
     );
   }
@@ -105,9 +219,9 @@ class _ToDoTileState extends State<ToDoTile> {
       duration: Duration(milliseconds: 20),
       margin: EdgeInsets.only(top: 12),
       width: screenWidth - 40 - 20,
-      height: widget.isCompleted ? 0 : 60,
+      height: widget.isCompleted || tapOnce ? 0 : 60,
       decoration: BoxDecoration(
-        color: AppColors.bgLighter,
+        color: widget.isTimerActive ? Color(0xFF262626) : AppColors.bgLighter,
         borderRadius: BorderRadius.circular(16),
         boxShadow: defaultBoxShadowBottomTile(),
       ),
@@ -118,16 +232,20 @@ class _ToDoTileState extends State<ToDoTile> {
     return AnimatedContainer(
       duration: Duration(milliseconds: 80),
       curve: Curves.easeInOutCubic,
-      margin: EdgeInsets.only(top: widget.isCompleted ? 21 : 6),
+      margin: EdgeInsets.only(top: widget.isCompleted || tapOnce ? 21 : 6),
       padding: EdgeInsets.all(16),
       width: screenWidth - 40 - 20,
-      height: widget.isCompleted ? 54 : 60,
+      height: widget.isCompleted || tapOnce ? 54 : 60,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        boxShadow: widget.isCompleted
+        boxShadow: widget.isTimerActive
+            ? transparentBoxShadow()
+            : widget.isCompleted || tapOnce
             ? completedBoxShadowTopTile()
             : defaultBoxShadowTopTile(),
-        color: widget.isCompleted
+        color: widget.isTimerActive
+            ? Color(0xFF333333)
+            : widget.isCompleted || tapOnce
             ? AppColors.bgCompleted
             : AppColors.bgLightest,
       ),
@@ -142,20 +260,25 @@ class _ToDoTileState extends State<ToDoTile> {
     );
   }
 
-  Text buildTaskName() {
-    return Text(
-      widget.taskName,
+  Widget buildTaskName() {
+    return AnimatedDefaultTextStyle(
+      duration: Duration(milliseconds: 100),
+      curve: Curves.easeInOut,
       style: AppTextStyles.taskTitle.copyWith(
-        color: widget.isCompleted
+        color: widget.isTimerActive
+            ? Colors.white
+            : widget.isCompleted || tapOnce
             ? AppColors.inactiveText
             : AppColors.activeText,
       ),
+
+      child: Text(widget.isTimerActive ? "Start timer" : widget.taskName),
     );
   }
 
   Text timeAllocated() {
     return Text(
-      widget.taskHour == "0" && widget.taskMinute == "0"
+      widget.taskHour == "0" && widget.taskMinute == "0" || widget.isTimerActive
           ? ""
           : widget.taskHour == "0"
           ? "${widget.taskMinute}m"
@@ -163,7 +286,7 @@ class _ToDoTileState extends State<ToDoTile> {
           ? "${widget.taskHour}h"
           : "${widget.taskHour}h ${widget.taskMinute}m",
       style: AppTextStyles.taskTime.copyWith(
-        color: widget.isCompleted
+        color: widget.isCompleted || tapOnce
             ? AppColors.inactiveText
             : AppColors.secondaryText,
       ),
@@ -211,6 +334,13 @@ class _ToDoTileState extends State<ToDoTile> {
         inset: true,
         offset: Offset(0, -2),
       ),
+    ];
+  }
+
+  List<BoxShadow> transparentBoxShadow() {
+    return [
+      BoxShadow(color: Colors.transparent, blurRadius: 0, offset: Offset.zero),
+      BoxShadow(color: Colors.transparent, blurRadius: 0, offset: Offset.zero),
     ];
   }
 }
