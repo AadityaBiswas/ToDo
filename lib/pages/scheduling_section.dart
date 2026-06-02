@@ -1,185 +1,180 @@
-import 'package:flutter/material.dart';
-import 'package:todo/pages/date_allocation.dart';
+import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
+import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:todo/pages/time_allocation.dart';
-import 'package:todo/theme/app_theme.dart';
 
-class SchedulingSection extends StatelessWidget {
-  final String selectedDate;
-  final String selectedMonth;
-  final String selectedYear;
-  final bool dateTapped;
+class SchedulingSection extends StatefulWidget {
   final bool timeTapped;
-  final ValueChanged<bool> onDateToggled;
   final ValueChanged<bool> onTimeToggled;
   final Function(String hour, String minute) onTimeSelected;
   final String selectedHour;
   final String selectedMinute;
-  final Function(String date, String month, String year) onDateSelected;
 
   const SchedulingSection({
-    required this.selectedDate,
-    required this.selectedMonth,
-    required this.selectedYear,
+    super.key,
     required this.selectedHour,
     required this.selectedMinute,
-    super.key,
-    required this.onDateSelected,
-    required this.dateTapped,
     required this.timeTapped,
-    required this.onDateToggled,
     required this.onTimeToggled,
     required this.onTimeSelected,
   });
 
   @override
-  Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+  State<SchedulingSection> createState() => _SchedulingSectionState();
+}
 
+class _SchedulingSectionState extends State<SchedulingSection> {
+  // Tracks if the button is currently held down or the bottom sheet is open
+  bool _isPressed = false;
+
+  @override
+  Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [dateSelector(screenWidth, context), timeSelector(context)],
+      children: [timeSelector(context)],
     );
   }
 
   GestureDetector timeSelector(BuildContext context) {
     return GestureDetector(
       onTap: () async {
+        // 1. Press the button down
+        setState(() {
+          _isPressed = true;
+        });
+
+        // 2. Wait for the bottom sheet to close
         final result =
             await showModalBottomSheet<({String timeHour, String timeMinute})>(
               context: context,
               builder: (context) {
                 return TimeAllocation(
-                  initialHour: selectedHour,
-                  initialMinute: selectedMinute,
+                  initialHour: widget.selectedHour,
+                  initialMinute: widget.selectedMinute,
                 );
               },
             );
 
+        // 3. Pop the button back up after the sheet closes
+        setState(() {
+          _isPressed = false;
+        });
+
+        // 4. Handle the result if a time was selected
         if (result != null) {
-          onTimeSelected(result.timeHour, result.timeMinute);
-          onTimeToggled(true);
+          widget.onTimeSelected(result.timeHour, result.timeMinute);
+          widget.onTimeToggled(true);
         }
       },
-      child: Container(
-        padding: const EdgeInsets.all(7),
-        width: 140,
-        height: 82,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          border: defaultBorder(),
-          color: const Color(0xFF111216).withOpacity(0.2),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            const SizedBox(height: 6),
-            Text(
-              "Duration",
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.secondaryText,
-                fontFamily: "JetBrainsMono",
-              ),
+      child: Stack(
+        children: [
+          // Base shadow layer
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 50),
+            height: 32,
+            width: 78,
+            margin: const EdgeInsets.only(top: 4),
+            decoration: BoxDecoration(
+              color: _isPressed
+                  ? const Color(0xFFBFBFBF).withValues(alpha: 0)
+                  : const Color(0xFFBFBFBF),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF333333).withValues(alpha: 0.25),
+                  blurRadius: 2,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            const SizedBox(height: 4),
-            if (!(selectedHour == "0" && selectedMinute == "0"))
-              Text(
-                selectedHour == "0" && selectedMinute == "0"
-                    ? "Set estimate"
-                    : selectedHour == "0"
-                    ? "${selectedMinute}m"
-                    : selectedMinute == "0"
-                    ? "${selectedHour}h"
-                    : "${selectedHour}h ${selectedMinute}m",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
+          ),
+          // Top animated physical layer
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 80),
+            curve: Curves.easeInOutCubic,
+            height: 32,
+            width: 78,
+            margin: EdgeInsets.only(
+              top: _isPressed ? 4 : 0, // Pushes down when pressed
+            ),
+            decoration: BoxDecoration(
+              color: _isPressed
+                  ? const Color(0xFFB3B3B3)
+                  : const Color(0xFFD9D9D9),
+              borderRadius: BorderRadius.circular(8),
+              boxShadow: _isPressed
+                  ? [
+                      BoxShadow(
+                        color: const Color(0xFF404040).withValues(alpha: 0.3),
+                        blurRadius: 4,
+                        inset: true,
+                        offset: const Offset(0, 2),
+                      ),
+                      BoxShadow(
+                        color: const Color(0xFFE5E5E5).withValues(alpha: 0.2),
+                        blurRadius: 2,
+                        inset: true,
+                        offset: const Offset(0, -1),
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: const Color(0xFF999999).withValues(alpha: 0.25),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+            ),
+          ),
+          // Text Layer
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              margin: EdgeInsets.only(
+                top: _isPressed ? 4 : 0, // Pushes text down when pressed
               ),
-            if ((selectedHour == "0" && selectedMinute == "0"))
-              Text(
-                "Set a Estimate",
-                style: TextStyle(
-                  fontSize: 15,
-                  color: AppColors.activeText,
-                  fontFamily: "JetBrainsMono",
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-          ],
-        ),
+              child: _buildTimeLabel(),
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  GestureDetector dateSelector(double screenWidth, BuildContext context) {
-    return GestureDetector(
-      onTap: () async {
-        final result =
-            await showModalBottomSheet<
-              ({String day, String month, String year})
-            >(
-              context: context,
-              builder: ((context) {
-                return DateAllocation(
-                  finalDay: selectedDate,
-                  finalMonth: selectedMonth,
-                  finalYear: selectedYear,
-                );
-              }),
-            );
-        if (result != null) {
-          onDateSelected(result.day, result.month, result.year);
-          onDateToggled(true);
-        }
-      },
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 42, vertical: 8),
-        width: 220,
-        height: 82,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          border: defaultBorder(),
-          color: const Color(0xFF111216).withOpacity(0.2),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(height: 4),
-            Text(
-              "Scheduled For",
-              style: TextStyle(
-                fontSize: 14,
-                color: AppColors.secondaryText,
-                fontFamily: "JetBrainsMono",
-              ),
-            ),
-            SizedBox(height: 4),
-            Text(
-              selectedDate == DateTime.now().day.toString() &&
-                      selectedMonth == DateTime.now().month.toString() &&
-                      selectedYear == DateTime.now().year.toString()
-                  ? "Today"
-                  : "$selectedDate.${selectedMonth.toString()}.$selectedYear",
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget _buildTimeLabel() {
+    final bool isZero =
+        widget.selectedHour == "0" && widget.selectedMinute == "0";
 
-  Border defaultBorder() {
-    return const Border(
-      top: BorderSide(color: Colors.black, width: 3),
-      left: BorderSide(color: Colors.black, width: 3),
-      bottom: BorderSide(color: Colors.black, width: 1.5),
-      right: BorderSide(color: Colors.black, width: 1.5),
+    // Animate text color just like the high priority button
+    final Color textColor = _isPressed
+        ? const Color(0xFFD9D9D9)
+        : const Color(0xFF4D4D4D);
+
+    if (isZero) {
+      return Text(
+        "Allocate Time",
+        style: TextStyle(
+          fontSize: 10,
+          color: textColor,
+          fontFamily: "Hanken_Grotesk",
+          fontWeight: FontWeight.bold, // matched to high priority button
+        ),
+      );
+    }
+
+    final String timeString = widget.selectedHour == "0"
+        ? "${widget.selectedMinute}m"
+        : widget.selectedMinute == "0"
+        ? "${widget.selectedHour}h"
+        : "${widget.selectedHour}h ${widget.selectedMinute}m";
+
+    return Text(
+      timeString,
+      style: TextStyle(
+        fontFamily: "Hanken_Grotesk",
+        fontSize: 10,
+        fontWeight: FontWeight.bold,
+        color: textColor,
+      ),
     );
   }
 }

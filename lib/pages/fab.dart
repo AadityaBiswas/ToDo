@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'package:todo/pages/add_task.dart';
 
 class FabButton extends StatefulWidget {
   final bool tapped;
   final VoidCallback onToggle; // Added callback
+  final Function(Map<String, dynamic>) onTaskAdded;
 
-  const FabButton({super.key, required this.tapped, required this.onToggle});
+  const FabButton({
+    super.key,
+    required this.tapped,
+    required this.onToggle,
+    required this.onTaskAdded,
+  });
 
   @override
   State<FabButton> createState() => _FabButtonState();
@@ -33,27 +40,22 @@ class _FabButtonState extends State<FabButton> {
   }
 
   void _runOpenSequence() async {
-    // 1. Squish Down (Quick tap feel)
     setState(() => isSquished = true);
     await Future.delayed(const Duration(milliseconds: 100)); // was 120
     if (!mounted) return;
 
-    // 2. Expand Base
     setState(() => isBaseExpanded = true);
     await Future.delayed(const Duration(milliseconds: 120)); // was 150
     if (!mounted) return;
 
-    // 3. Expand Top
     setState(() => isTopExpanded = true);
     await Future.delayed(const Duration(milliseconds: 150)); // was 200
     if (!mounted) return;
 
-    // 4. Show Buttons
     setState(() => showButtons = true);
   }
 
   void _runCloseSequence() async {
-    // 1. Hide buttons instantly
     setState(() {
       showButtons = false;
       startTimer = false;
@@ -62,17 +64,14 @@ class _FabButtonState extends State<FabButton> {
     await Future.delayed(const Duration(milliseconds: 30)); // was 50
     if (!mounted) return;
 
-    // 2. Collapse Top
     setState(() => isTopExpanded = false);
     await Future.delayed(const Duration(milliseconds: 120)); // was 150
     if (!mounted) return;
 
-    // 3. Collapse Base
     setState(() => isBaseExpanded = false);
     await Future.delayed(const Duration(milliseconds: 120)); // was 150
     if (!mounted) return;
 
-    // 4. Un-squish
     setState(() => isSquished = false);
   }
 
@@ -82,12 +81,10 @@ class _FabButtonState extends State<FabButton> {
       height: 100,
       width: 260,
       child: GestureDetector(
-        // Instead of running local logic, we tell the HomePage we were tapped
         onTap: widget.onToggle,
         child: Stack(
           alignment: Alignment.topCenter,
           children: [
-            // 1. Base Layer (Expands second)
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -108,7 +105,6 @@ class _FabButtonState extends State<FabButton> {
               ),
             ),
 
-            // 2. Middle Shadow Layer (Squishes instantly)
             AnimatedContainer(
               duration: const Duration(milliseconds: 120),
               width: 64,
@@ -129,7 +125,6 @@ class _FabButtonState extends State<FabButton> {
               ),
             ),
 
-            // 3. Top Interactive Layer
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               curve: Curves.easeOut,
@@ -167,7 +162,6 @@ class _FabButtonState extends State<FabButton> {
               ),
             ),
 
-            // 4. Inner Content
             if (showButtons)
               Container(
                 height: 64,
@@ -178,7 +172,6 @@ class _FabButtonState extends State<FabButton> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      // Start Timer Button
                       GestureDetector(
                         onTap: () {
                           setState(() {
@@ -255,11 +248,55 @@ class _FabButtonState extends State<FabButton> {
                         ),
                       ),
 
-                      // Add Task Button
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           setState(() {
-                            addTask = !addTask;
+                            addTask = true;
+                          });
+                          await Future.delayed(
+                            const Duration(milliseconds: 60),
+                          );
+                          showModalBottomSheet(
+                            context: context,
+                            isScrollControlled: true,
+                            backgroundColor: Colors.transparent,
+                            builder: (context) {
+                              return const AddTask(
+                                editTask: false,
+                                taskName: "0",
+                                taskHour: "0",
+                                taskMinute: "0",
+                                taskDate: "0",
+                                taskMonth: "0",
+                                taskYear: "0",
+                              );
+                            },
+                          ).then((value) async {
+                            await Future.delayed(
+                              const Duration(milliseconds: 400),
+                            );
+                            if (!mounted) return;
+                            setState(() {
+                              addTask = false;
+                            });
+                            await Future.delayed(
+                              const Duration(milliseconds: 100),
+                            );
+                            if (!mounted) return;
+                            setState(() {
+                              widget.onToggle();
+                            });
+                            await Future.delayed(
+                              const Duration(milliseconds: 400),
+                            );
+                            if (!mounted) return;
+
+                            // 2. PASS THE VALUE UP TO HOMEPAGE HERE
+                            if (value != null) {
+                              widget.onTaskAdded(
+                                Map<String, dynamic>.from(value),
+                              );
+                            }
                           });
                         },
                         child: Stack(

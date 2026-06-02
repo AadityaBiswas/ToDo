@@ -42,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bgDark,
+      resizeToAvoidBottomInset: false,
       body: GestureDetector(
         behavior: HitTestBehavior.translucent,
         onTap: () {
@@ -66,6 +67,12 @@ class _HomePageState extends State<HomePage> {
                       if (fabTapped) {
                         activeTimerIndex = null;
                       }
+                    });
+                  },
+                  onTaskAdded: (newTask) {
+                    setState(() {
+                      tasks.insert(0, newTask);
+                      _saveTasks();
                     });
                   },
                 ),
@@ -106,134 +113,16 @@ class _HomePageState extends State<HomePage> {
           onEditedTask: (updatedTask) {
             setState(() {
               fabTapped = false;
-              tasks[index] = updatedTask;
-              _saveTasks();
+              if (updatedTask['delete'] == true) {
+                tasks.removeAt(index);
+              } else {
+                tasks[index] = updatedTask;
+                _saveTasks();
+              }
             });
           },
         );
       },
     );
   }
-
-  // Widget floatingActionButton(BuildContext context) {
-  //   return SizedBox(
-  //     height: 100,
-  //     width: 100,
-  //     child: GestureDetector(
-  //       onTap: () async {
-  //         setState(() {
-  //           fabTapped = !fabTapped;
-  //         });
-  //         await Future.delayed(const Duration(milliseconds: 60));
-  //         showModalBottomSheet(
-  //           context: context,
-  //           builder: (context) {
-  //             return const AddTask(
-  //               editTask: false,
-  //               taskName: "0",
-  //               taskHour: "0",
-  //               taskMinute: "0",
-  //               taskDate: "0",
-  //               taskMonth: "0",
-  //               taskYear: "0",
-  //             );
-  //           },
-  //         ).then((value) async {
-  //           await Future.delayed(const Duration(milliseconds: 400));
-  //           setState(() {
-  //             fabTapped = false;
-  //             if (value != null) {
-  //               tasks.insert(0, Map<String, dynamic>.from(value));
-  //               _saveTasks();
-  //             }
-  //           });
-  //         });
-  //       },
-  //       child: Stack(
-  //         alignment: Alignment.topCenter,
-  //         children: [
-  //           Container(
-  //             width: 80,
-  //             height: 80,
-  //             margin: EdgeInsets.only(top: 8),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.bgBottomBar,
-  //               borderRadius: BorderRadius.circular(100),
-  //               boxShadow: [
-  //                 BoxShadow(
-  //                   color: Colors.white,
-  //                   inset: true,
-  //                   offset: Offset(0, 4),
-  //                   blurRadius: 4,
-  //                 ),
-  //                 BoxShadow(
-  //                   color: Colors.black.withOpacity(0.15),
-  //                   offset: Offset(0, -6),
-  //                   blurRadius: 4,
-  //                 ),
-  //               ],
-  //             ),
-  //           ),
-  //           Container(
-  //             width: 64,
-  //             height: fabTapped ? 0 : 64,
-  //             margin: EdgeInsets.only(top: 10),
-  //             decoration: BoxDecoration(
-  //               color: AppColors.bgFabDark,
-  //               borderRadius: BorderRadius.circular(100),
-  //               border: Border(
-  //                 right: BorderSide(color: Colors.black, width: 0.2),
-  //                 left: BorderSide(color: Colors.black, width: 0.2),
-  //                 bottom: BorderSide(color: Colors.black, width: 0.5),
-  //               ),
-  //             ),
-  //           ),
-  //           AnimatedContainer(
-  //             duration: Duration(milliseconds: 50),
-  //             height: 64,
-  //             width: 64,
-  //             margin: EdgeInsets.only(top: fabTapped ? 16 : 0),
-  //             decoration: BoxDecoration(
-  //               shape: BoxShape.circle,
-  //               color: fabTapped ? AppColors.bgLighter : AppColors.bgFabLight,
-  //               boxShadow: fabTapped
-  //                   ? [
-  //                       BoxShadow(
-  //                         color: Color(0xFF7A7A7A).withOpacity(0.1),
-  //                         blurRadius: 4.5,
-  //                         inset: true,
-  //                         offset: Offset(0, -3),
-  //                       ),
-  //                       BoxShadow(
-  //                         color: Color(0xFF0d0d0d).withOpacity(0.16),
-  //                         blurRadius: 5,
-  //                         inset: true,
-  //                         offset: Offset(0, 1),
-  //                       ),
-  //                     ]
-  //                   : [
-  //                       BoxShadow(
-  //                         color: Color(0xFF000000).withOpacity(0.10),
-  //                         blurRadius: 8,
-  //                         offset: Offset(0, 4),
-  //                       ),
-  //                       BoxShadow(
-  //                         color: Color(0xFFFFFFFF).withOpacity(0.25),
-  //                         blurRadius: 8,
-  //                         inset: true,
-  //                         offset: Offset(0, 6),
-  //                       ),
-  //                     ],
-  //             ),
-  //             child: Icon(
-  //               Icons.add_rounded,
-  //               color: fabTapped ? Colors.black.withOpacity(0.5) : Colors.white,
-  //               size: 32,
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 }
