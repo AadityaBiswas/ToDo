@@ -111,36 +111,34 @@ class _ToDoTileState extends State<ToDoTile> {
             );
             widget.onTimerTap();
             if (result != null) {
-              int elapsedHour = int.tryParse(result['hour'].toString()) ?? 0;
-              int elapsedMinute =
+              // 1. Get the exact numbers from the TimerScreen face
+              int returnedHour = int.tryParse(result['hour'].toString()) ?? 0;
+              int returnedMinute =
                   int.tryParse(result['minute'].toString()) ?? 0;
+              bool isNegative = result['isNegative'] as bool? ?? false;
+
+              // 2. Get the originally allocated time for the task
               int allocatedHour = int.tryParse(widget.taskHour) ?? 0;
               int allocatedMinute = int.tryParse(widget.taskMinute) ?? 0;
 
-              int totalElapsed = (elapsedHour * 60) + elapsedMinute;
-              int totalAllocated = (allocatedHour * 60) + allocatedMinute;
+              int totalAllocatedMins = (allocatedHour * 60) + allocatedMinute;
+              int returnedMins = (returnedHour * 60) + returnedMinute;
 
-              bool isNowCompleted = widget.isCompleted;
-
-              if (totalElapsed >= totalAllocated) {
-                isNowCompleted = true;
-
-                Map<String, dynamic> updatedTask = {
-                  'name': widget.taskName,
-                  'hour': elapsedHour.toString(),
-                  'minute': elapsedMinute.toString(),
-                  'date': widget.taskDate,
-                  'month': widget.taskMonth,
-                  'year': widget.taskYear,
-                  'isCompleted': isNowCompleted,
-                };
-
-                widget.onEditedTask(updatedTask);
+              // 3. Calculate the ACTUAL time the user spent working
+              int actualTimeSpentMins;
+              if (isNegative) {
+                // If it went negative, they spent the allocated time PLUS the negative time
+                actualTimeSpentMins = totalAllocatedMins + returnedMins;
               } else {
-                int differenceInMinutes = totalAllocated - totalElapsed;
+                // If positive, they spent the allocated time MINUS whatever is left on the clock
+                actualTimeSpentMins = totalAllocatedMins - returnedMins;
+              }
 
-                int finalHours = differenceInMinutes ~/ 60;
-                int finalMinutes = differenceInMinutes % 60;
+              // 4. Update the task based on completion status
+              if (isNegative || returnedMins == 0) {
+                // TASK COMPLETED: Save the total time spent (e.g., 2 minutes)
+                int finalHours = actualTimeSpentMins ~/ 60;
+                int finalMinutes = actualTimeSpentMins % 60;
 
                 Map<String, dynamic> updatedTask = {
                   'name': widget.taskName,
@@ -149,9 +147,20 @@ class _ToDoTileState extends State<ToDoTile> {
                   'date': widget.taskDate,
                   'month': widget.taskMonth,
                   'year': widget.taskYear,
-                  'isCompleted': isNowCompleted,
+                  'isCompleted': true, // Mark complete because timer finished
                 };
-
+                widget.onEditedTask(updatedTask);
+              } else {
+                // TASK PAUSED EARLY: Save the REMAINING time so they can resume later
+                Map<String, dynamic> updatedTask = {
+                  'name': widget.taskName,
+                  'hour': returnedHour.toString(),
+                  'minute': returnedMinute.toString(),
+                  'date': widget.taskDate,
+                  'month': widget.taskMonth,
+                  'year': widget.taskYear,
+                  'isCompleted': widget.isCompleted,
+                };
                 widget.onEditedTask(updatedTask);
               }
             }

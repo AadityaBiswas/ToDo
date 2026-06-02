@@ -162,17 +162,17 @@ class _TimerScreenState extends State<TimerScreen> {
                       ),
                     ),
                   if (_hours > 0)
-                    _buildTimeSegment(_hours.toString().padLeft(2, '0'), "H"),
+                    _buildTimeSegment(_hours.toString().padLeft(2, '0'), "h"),
 
                   _buildTimeSegment(
                     _minutes.toString().padLeft(2, '0'),
-                    "M",
+                    "m",
                     showColon: true,
                   ),
 
                   _buildTimeSegment(
                     _seconds.toString().padLeft(2, '0'),
-                    "S",
+                    "s",
                     showColon: false,
                   ),
                 ],

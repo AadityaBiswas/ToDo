@@ -36,6 +36,7 @@ class SchedulingSection extends StatelessWidget {
     double screenWidth = MediaQuery.of(context).size.width;
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [dateSelector(screenWidth, context), timeSelector(context)],
     );
   }
@@ -135,7 +136,6 @@ class SchedulingSection extends StatelessWidget {
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 42, vertical: 8),
-        margin: EdgeInsets.only(right: (screenWidth - 41 - 220 - 140)),
         width: 220,
         height: 82,
         decoration: BoxDecoration(
