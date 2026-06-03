@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:todo/pages/add_task.dart';
+import 'package:todo/pages/time_allocation.dart';
 
 class FabButton extends StatefulWidget {
   final bool tapped;
@@ -173,10 +174,50 @@ class _FabButtonState extends State<FabButton> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       GestureDetector(
-                        onTap: () {
+                        onTap: () async {
                           setState(() {
-                            startTimer = !startTimer;
+                            startTimer = true;
                           });
+                          await Future.delayed(
+                            const Duration(milliseconds: 80),
+                          );
+
+                          await showModalBottomSheet<
+                                ({String timeHour, String timeMinute})
+                              >(
+                                context: context,
+                                isScrollControlled: true,
+                                backgroundColor: Colors.transparent,
+                                builder: (context) {
+                                  return const TimeAllocation(
+                                    oneTime: true,
+                                    initialHour: "0",
+                                    initialMinute: "0",
+                                  );
+                                },
+                              )
+                              .then((value) async {
+                                await Future.delayed(
+                                  const Duration(milliseconds: 80),
+                                );
+                                if (!mounted) return; // Added safety check
+
+                                setState(() {
+                                  startTimer = false;
+                                });
+
+                                await Future.delayed(
+                                  const Duration(milliseconds: 80),
+                                );
+                                if (!mounted) return;
+
+                                setState(() {
+                                  widget.onToggle();
+                                });
+
+                                // Optional: You can do something with 'value' here
+                                // if (value != null) { ... }
+                              });
                         },
                         child: Stack(
                           children: [
@@ -273,25 +314,24 @@ class _FabButtonState extends State<FabButton> {
                             },
                           ).then((value) async {
                             await Future.delayed(
-                              const Duration(milliseconds: 400),
+                              const Duration(milliseconds: 80),
                             );
                             if (!mounted) return;
                             setState(() {
                               addTask = false;
                             });
                             await Future.delayed(
-                              const Duration(milliseconds: 100),
+                              const Duration(milliseconds: 80),
                             );
                             if (!mounted) return;
                             setState(() {
                               widget.onToggle();
                             });
                             await Future.delayed(
-                              const Duration(milliseconds: 400),
+                              const Duration(milliseconds: 80),
                             );
                             if (!mounted) return;
 
-                            // 2. PASS THE VALUE UP TO HOMEPAGE HERE
                             if (value != null) {
                               widget.onTaskAdded(
                                 Map<String, dynamic>.from(value),

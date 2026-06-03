@@ -37,19 +37,20 @@ class _SchedulingSectionState extends State<SchedulingSection> {
   GestureDetector timeSelector(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        // 1. Press the button down
         setState(() {
           _isPressed = true;
         });
 
-        // 2. Wait for the bottom sheet to close
         final result =
             await showModalBottomSheet<({String timeHour, String timeMinute})>(
               context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
               builder: (context) {
                 return TimeAllocation(
                   initialHour: widget.selectedHour,
                   initialMinute: widget.selectedMinute,
+                  oneTime: false,
                 );
               },
             );

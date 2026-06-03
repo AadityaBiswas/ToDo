@@ -63,7 +63,7 @@ class _AddTaskState extends State<AddTask> {
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
       padding: EdgeInsets.only(
-        bottom: keyboardHeight > 0 ? keyboardHeight + 20 : 0,
+        bottom: keyboardHeight > 0 ? keyboardHeight + 20 : 30,
       ),
       child: SingleChildScrollView(
         child: Stack(
@@ -236,26 +236,9 @@ class _AddTaskState extends State<AddTask> {
                               ),
                             ),
                             SchedulingSection(
-                              // selectedDate: selectedDate,
-                              // selectedMonth: selectedMonth,
-                              // selectedYear: selectedYear,
                               selectedHour: selectedHour,
                               selectedMinute: selectedMinute,
-                              // dateTapped: dateTapped,
                               timeTapped: timeTapped,
-                              // onDateToggled: (newValue) {
-                              //   setState(() {
-                              //     dateTapped = newValue;
-                              //   });
-                              // },
-                              // onDateSelected: ((date, month, year) {
-                              //   setState(() {
-                              //     selectedDate = date;
-                              //     selectedMonth = month.toString();
-                              //     selectedYear = year.toString();
-                              //     dateTapped = true;
-                              //   });
-                              // }),
                               onTimeToggled: (newValue) {
                                 setState(() {
                                   timeTapped = newValue;
@@ -279,7 +262,7 @@ class _AddTaskState extends State<AddTask> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            deleteTask(context),
+                            widget.editTask ? deleteTask(context) : SizedBox(),
                             saveTaskButton(context),
                           ],
                         ),
