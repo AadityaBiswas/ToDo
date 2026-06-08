@@ -39,6 +39,10 @@ dependencies:
   flutter_inset_shadow: ^2.0.3
   rive: ^0.14.7
   wakelock_plus: ^1.6.1
+  flutter_foreground_task: ^9.2.2
+  posthog_flutter: ^5.25.3
+  flutter_launcher_icons: ^0.14.4
+  firebase_core: ^4.10.0
 
 dev_dependencies:
   flutter_test:
@@ -95,3 +99,14 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+# For details regarding fonts from package dependencies,
+  # see https://flutter.dev/to/font-from-package
+
+# Move this block completely to the left (root level)
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/logo.png"
+  # Optional: For Android 12+ adaptive icons
+  adaptive_icon_background: "#ffffff" # Or a background image path
+  adaptive_icon_foreground: "assets/icon/logo.png"

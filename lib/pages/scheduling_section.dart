@@ -8,6 +8,7 @@ class SchedulingSection extends StatefulWidget {
   final Function(String hour, String minute) onTimeSelected;
   final String selectedHour;
   final String selectedMinute;
+  final bool isEditing;
 
   const SchedulingSection({
     super.key,
@@ -16,6 +17,7 @@ class SchedulingSection extends StatefulWidget {
     required this.timeTapped,
     required this.onTimeToggled,
     required this.onTimeSelected,
+    this.isEditing = false,
   });
 
   @override
@@ -23,7 +25,6 @@ class SchedulingSection extends StatefulWidget {
 }
 
 class _SchedulingSectionState extends State<SchedulingSection> {
-  // Tracks if the button is currently held down or the bottom sheet is open
   bool _isPressed = false;
 
   @override
@@ -51,16 +52,15 @@ class _SchedulingSectionState extends State<SchedulingSection> {
                   initialHour: widget.selectedHour,
                   initialMinute: widget.selectedMinute,
                   oneTime: false,
+                  isEditing: widget.isEditing,
                 );
               },
             );
 
-        // 3. Pop the button back up after the sheet closes
         setState(() {
           _isPressed = false;
         });
 
-        // 4. Handle the result if a time was selected
         if (result != null) {
           widget.onTimeSelected(result.timeHour, result.timeMinute);
           widget.onTimeToggled(true);
@@ -71,8 +71,8 @@ class _SchedulingSectionState extends State<SchedulingSection> {
           // Base shadow layer
           AnimatedContainer(
             duration: const Duration(milliseconds: 50),
-            height: 32,
-            width: 78,
+            height: 34,
+            width: 82,
             margin: const EdgeInsets.only(top: 4),
             decoration: BoxDecoration(
               color: _isPressed
@@ -92,8 +92,8 @@ class _SchedulingSectionState extends State<SchedulingSection> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 80),
             curve: Curves.easeInOutCubic,
-            height: 32,
-            width: 78,
+            height: 34,
+            width: 82,
             margin: EdgeInsets.only(
               top: _isPressed ? 4 : 0, // Pushes down when pressed
             ),
@@ -127,14 +127,9 @@ class _SchedulingSectionState extends State<SchedulingSection> {
             ),
           ),
           // Text Layer
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
-              margin: EdgeInsets.only(
-                top: _isPressed ? 4 : 0, // Pushes text down when pressed
-              ),
-              child: _buildTimeLabel(),
-            ),
+          Container(
+            margin: EdgeInsets.only(top: _isPressed ? 4 : 0),
+            child: _buildTimeLabel(),
           ),
         ],
       ),
@@ -151,13 +146,19 @@ class _SchedulingSectionState extends State<SchedulingSection> {
         : const Color(0xFF4D4D4D);
 
     if (isZero) {
-      return Text(
-        "Allocate Time",
-        style: TextStyle(
-          fontSize: 10,
-          color: textColor,
-          fontFamily: "Hanken_Grotesk",
-          fontWeight: FontWeight.bold, // matched to high priority button
+      return SizedBox(
+        height: 34,
+        width: 82,
+        child: Center(
+          child: Text(
+            "Add time",
+            style: TextStyle(
+              fontSize: 14,
+              color: textColor,
+              fontFamily: "Hanken_Grotesk",
+              fontWeight: FontWeight.bold, // matched to high priority button
+            ),
+          ),
         ),
       );
     }
@@ -168,13 +169,19 @@ class _SchedulingSectionState extends State<SchedulingSection> {
         ? "${widget.selectedHour}h"
         : "${widget.selectedHour}h ${widget.selectedMinute}m";
 
-    return Text(
-      timeString,
-      style: TextStyle(
-        fontFamily: "Hanken_Grotesk",
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        color: textColor,
+    return SizedBox(
+      height: 34,
+      width: 82,
+      child: Center(
+        child: Text(
+          timeString,
+          style: TextStyle(
+            fontFamily: "Hanken_Grotesk",
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: textColor,
+          ),
+        ),
       ),
     );
   }

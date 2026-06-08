@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "244411266428",
+    "project_id": "pressdone-92fcb",
+    "storage_bucket": "pressdone-92fcb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:244411266428:android:5b2995d6b1b6aa229a20f9",
+        "android_client_info": {
+          "package_name": "com.example.todo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAFmu8phas-Sk-4VelGcaffn7-xmaJZ2LA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

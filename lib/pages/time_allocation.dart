@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:todo/pages/timer.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
@@ -7,11 +8,13 @@ class TimeAllocation extends StatefulWidget {
   final String initialHour;
   final String initialMinute;
   final bool oneTime;
+  final bool isEditing;
   const TimeAllocation({
     super.key,
     required this.initialHour,
     required this.initialMinute,
     required this.oneTime,
+    this.isEditing = false,
   });
 
   @override
@@ -91,19 +94,19 @@ class _TimeAllocationState extends State<TimeAllocation> {
                           horizontal: 8,
                         ),
                         height: 52,
-                        width: 280,
+                        width: 245,
                         decoration: BoxDecoration(
                           color: Color(0xFFBFBFBF),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
+                              color: Colors.black.withValues(alpha: 0.20),
                               blurRadius: 6,
                               inset: true,
                               offset: Offset(0, 3),
                             ),
                             BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.25),
+                              color: Colors.white.withValues(alpha: 0.20),
                               blurRadius: 4,
                               inset: true,
                               offset: Offset(0, -1),
@@ -117,7 +120,6 @@ class _TimeAllocationState extends State<TimeAllocation> {
                               label: "1h",
                               isActive: oneHour,
                               onTap: () async {
-                                // Check if the pill is already active OR if the time is exactly 1h 0m
                                 if (oneHour ||
                                     (localHour == 1 && localMinute == 0)) {
                                   setState(() {
@@ -133,7 +135,6 @@ class _TimeAllocationState extends State<TimeAllocation> {
                                   return; // Exit early!
                                 }
 
-                                // If not, activate the 1 hour pill and set the time
                                 setState(() {
                                   oneHour = true;
                                   fortyFive = false;
@@ -153,7 +154,6 @@ class _TimeAllocationState extends State<TimeAllocation> {
                               label: "45m",
                               isActive: fortyFive,
                               onTap: () async {
-                                // Check if the pill is already active OR if the time is exactly 0h 45m
                                 if (fortyFive ||
                                     (localHour == 0 && localMinute == 45)) {
                                   setState(() {
@@ -188,7 +188,6 @@ class _TimeAllocationState extends State<TimeAllocation> {
                               label: "30m",
                               isActive: thirty,
                               onTap: () async {
-                                // Check if the pill is already active OR if the time is exactly 0h 30m
                                 if (thirty ||
                                     (localHour == 0 && localMinute == 30)) {
                                   setState(() {
@@ -221,7 +220,18 @@ class _TimeAllocationState extends State<TimeAllocation> {
                           ],
                         ),
                       ),
-                      saveButton(context),
+                      SizedBox(
+                        height: 46,
+                        width: widget.oneTime || !widget.isEditing ? 46 : 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (!widget.oneTime && widget.isEditing)
+                              deleteButton(context),
+                            saveButton(context),
+                          ],
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -493,7 +503,7 @@ class _TimeAllocationState extends State<TimeAllocation> {
           AnimatedContainer(
             duration: const Duration(milliseconds: 50),
             height: 32,
-            width: 78,
+            width: 70,
             margin: const EdgeInsets.only(top: 3),
             decoration: BoxDecoration(
               color: isActive
@@ -514,7 +524,7 @@ class _TimeAllocationState extends State<TimeAllocation> {
             duration: const Duration(milliseconds: 80),
             curve: Curves.easeInOutCubic,
             height: 32,
-            width: 78,
+            width: 70,
             margin: EdgeInsets.only(top: isActive ? 3 : 0),
             decoration: BoxDecoration(
               color: isActive
@@ -526,8 +536,7 @@ class _TimeAllocationState extends State<TimeAllocation> {
                       BoxShadow(
                         color: const Color(0xFF404040).withOpacity(0.3),
                         blurRadius: 4,
-                        inset:
-                            true, // Assuming you are using flutter_inset_box_shadow
+                        inset: true,
                         offset: const Offset(0, 2),
                       ),
                       BoxShadow(
@@ -549,7 +558,7 @@ class _TimeAllocationState extends State<TimeAllocation> {
           // Text layer
           Container(
             height: 32,
-            width: 78,
+            width: 70,
             margin: EdgeInsets.only(top: isActive ? 3 : 0),
             child: Center(
               child: Text(
@@ -585,7 +594,9 @@ class _TimeAllocationState extends State<TimeAllocation> {
               ),
             ),
           );
+          await Posthog().capture(eventName: "One time timer Started");
         } else {
+          await Posthog().capture(eventName: "Task timer Started");
           String timeHour = localHour == 0 ? "0" : localHour.toString();
           String timeMinute = localMinute == 0 ? "0" : localMinute.toString();
 
@@ -606,7 +617,6 @@ class _TimeAllocationState extends State<TimeAllocation> {
             });
             await Future.delayed(const Duration(milliseconds: 150));
 
-            // 3. Keep standard setState updates safe
             if (!context.mounted) return;
 
             setState(() {
@@ -632,7 +642,38 @@ class _TimeAllocationState extends State<TimeAllocation> {
         ),
         child: Center(
           child: Icon(
-            widget.oneTime ? Icons.play_arrow : Icons.add,
+            widget.oneTime ? Icons.play_arrow : Icons.arrow_downward_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector deleteButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        Navigator.pop(context, (timeHour: "0", timeMinute: "0"));
+      },
+      child: Container(
+        height: 46,
+        width: 46,
+        decoration: BoxDecoration(
+          color: Colors.redAccent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.white.withValues(alpha: 0.45),
+              blurRadius: 6,
+              inset: true,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Icon(
+            Icons.delete_outline_rounded,
             color: Colors.white,
             size: 20,
           ),

@@ -18,6 +18,8 @@ class _HomePageState extends State<HomePage> {
 
   List<Map<String, dynamic>> tasks = [];
   int? activeTimerIndex;
+  bool fabTapped = false;
+
   @override
   void initState() {
     super.initState();
@@ -37,7 +39,6 @@ class _HomePageState extends State<HomePage> {
     taskData.put("allTasks", tasks);
   }
 
-  bool fabTapped = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -71,7 +72,8 @@ class _HomePageState extends State<HomePage> {
                   },
                   onTaskAdded: (newTask) {
                     setState(() {
-                      tasks.insert(0, newTask);
+                      // All tasks are saved to the master list
+                      tasks.add(newTask);
                       _saveTasks();
                     });
                   },
@@ -85,28 +87,51 @@ class _HomePageState extends State<HomePage> {
   }
 
   ListView taskList() {
+    // 1. Get current date
+    final DateTime now = DateTime.now();
+
+    // 2. Filter tasks for today, saving their ORIGINAL index in the master list
+    List<MapEntry<int, Map<String, dynamic>>> todaysTasks = [];
+    for (int i = 0; i < tasks.length; i++) {
+      final task = tasks[i];
+
+      // Safely parse date components (handles both String and Int storage)
+      final int tDate = int.tryParse(task["date"]?.toString() ?? "0") ?? 0;
+      final int tMonth = int.tryParse(task["month"]?.toString() ?? "0") ?? 0;
+      final int tYear = int.tryParse(task["year"]?.toString() ?? "0") ?? 0;
+
+      // Check if the task matches today's date
+      if (tDate == now.day && tMonth == now.month && tYear == now.year) {
+        todaysTasks.add(MapEntry(i, task));
+      }
+    }
+
     return ListView.builder(
-      itemCount: tasks.length,
+      itemCount: todaysTasks.length, // Only build for today's tasks
       padding: const EdgeInsets.only(top: 52, left: 20, right: 20, bottom: 52),
       itemBuilder: (context, index) {
-        final task = tasks[index];
+        // 3. Extract the original master index and the task data
+        final int originalIndex = todaysTasks[index].key;
+        final Map<String, dynamic> task = todaysTasks[index].value;
 
         return ToDoTile(
-          taskName: task["name"] ?? "0",
-          taskHour: task["hour"] ?? "0",
-          taskMinute: task["minute"] ?? "0",
-          taskDate: task["date"] ?? "0",
-          taskMonth: task["month"] ?? "0",
-          taskYear: task["year"] ?? "0",
+          taskName: task["name"]?.toString() ?? "0",
+          taskHour: task["hour"]?.toString() ?? "0",
+          taskMinute: task["minute"]?.toString() ?? "0",
+          taskDate: task["date"]?.toString() ?? "0",
+          taskMonth: task["month"]?.toString() ?? "0",
+          taskYear: task["year"]?.toString() ?? "0",
           isCompleted: task["isCompleted"] ?? false,
-          isTimerActive: activeTimerIndex == index,
+          isHighPriority: false, // Hardcoded to false to enforce normal state
+          isTimerActive:
+              activeTimerIndex == originalIndex, // Match against original index
           onTimerTap: () {
             setState(() {
               fabTapped = false;
-              if (activeTimerIndex == index) {
+              if (activeTimerIndex == originalIndex) {
                 activeTimerIndex = null;
               } else {
-                activeTimerIndex = index;
+                activeTimerIndex = originalIndex;
               }
             });
           },
@@ -114,9 +139,16 @@ class _HomePageState extends State<HomePage> {
             setState(() {
               fabTapped = false;
               if (updatedTask['delete'] == true) {
-                tasks.removeAt(index);
+                // Delete from the master list using the original index
+                tasks.removeAt(originalIndex);
+                if (activeTimerIndex == originalIndex) {
+                  activeTimerIndex =
+                      null; // Clear timer if the active task is deleted
+                }
+                _saveTasks();
               } else {
-                tasks[index] = updatedTask;
+                // Update the master list using the original index
+                tasks[originalIndex] = updatedTask;
                 _saveTasks();
               }
             });

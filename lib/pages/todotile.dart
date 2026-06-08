@@ -1,3 +1,4 @@
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:rive/rive.dart' as rive;
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:todo/pages/add_task.dart';
@@ -14,10 +15,12 @@ class ToDoTile extends StatefulWidget {
   final String taskMonth;
   final String taskYear;
   final bool isCompleted;
+  final bool isHighPriority;
   final VoidCallback onTimerTap;
   final void Function(Map<String, dynamic>) onEditedTask;
   const ToDoTile({
     super.key,
+    required this.isHighPriority,
     required this.onTimerTap,
     required this.isTimerActive,
     required this.isCompleted,
@@ -60,6 +63,7 @@ class _ToDoTileState extends State<ToDoTile> {
 
     return GestureDetector(
       onLongPress: () async {
+        await Posthog().capture(eventName: "Opened Edited task");
         setState(() {
           editTask = true;
           showRiveEditTaskBorder = true;
@@ -98,6 +102,7 @@ class _ToDoTileState extends State<ToDoTile> {
             'isCompleted': !widget.isCompleted,
           };
           widget.onEditedTask(updatedTask);
+          await Posthog().capture(eventName: "Task Completed");
         } else {
           if (widget.isTimerActive) {
             final result = await Navigator.push(
@@ -273,7 +278,13 @@ class _ToDoTileState extends State<ToDoTile> {
             : AppColors.activeText,
       ),
 
-      child: Text(widget.isTimerActive ? "Start timer" : widget.taskName),
+      child: Expanded(
+        child: Text(
+          widget.isTimerActive ? "Start timer" : widget.taskName,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
     );
   }
 

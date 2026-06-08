@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:hive/hive.dart';
+import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'scheduling_section.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
@@ -29,7 +30,8 @@ class AddTask extends StatefulWidget {
 
 class _AddTaskState extends State<AddTask> {
   late TextEditingController _taskName;
-  bool highPriority = false;
+  bool saveIconColorChange = false;
+  bool taskBorderError = false;
   bool saveClicked = false;
   bool dateTapped = true;
   bool timeTapped = false;
@@ -110,8 +112,8 @@ class _AddTaskState extends State<AddTask> {
                           vertical: 8,
                           horizontal: 8,
                         ),
-                        height: 52,
-                        width: 190,
+                        height: 56,
+                        width: 100,
                         decoration: BoxDecoration(
                           color: Color(0xFFBFBFBF),
                           borderRadius: BorderRadius.circular(12),
@@ -133,112 +135,11 @@ class _AddTaskState extends State<AddTask> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            GestureDetector(
-                              onTap: () async {
-                                setState(() {
-                                  highPriority = !highPriority;
-                                });
-                                await Future.delayed(
-                                  Duration(milliseconds: 350),
-                                );
-                                setState(() {
-                                  highPriority = false;
-                                });
-                              },
-                              child: Stack(
-                                children: [
-                                  AnimatedContainer(
-                                    duration: Duration(milliseconds: 50),
-                                    height: 32,
-                                    width: 78,
-                                    margin: EdgeInsets.only(top: 4),
-                                    decoration: BoxDecoration(
-                                      color: highPriority
-                                          ? Color(
-                                              0xFFBFBFBF,
-                                            ).withValues(alpha: 0)
-                                          : Color(0xFFBFBFBF),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Color(
-                                            0xFF333333,
-                                          ).withValues(alpha: 0.25),
-                                          blurRadius: 2,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  AnimatedContainer(
-                                    duration: Duration(milliseconds: 80),
-                                    curve: Curves.easeInOutCubic,
-                                    height: 32,
-                                    width: 78,
-                                    margin: EdgeInsets.only(
-                                      top: highPriority ? 4 : 0,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: highPriority
-                                          ? Color(0xFFB3B3B3)
-                                          : Color(0xFFD9D9D9),
-                                      borderRadius: BorderRadius.circular(8),
-                                      boxShadow: highPriority
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(
-                                                  0xFF404040,
-                                                ).withOpacity(0.3),
-                                                blurRadius: 4,
-                                                inset: true,
-                                                offset: const Offset(0, 2),
-                                              ),
-                                              BoxShadow(
-                                                color: const Color(
-                                                  0xFFE5E5E5,
-                                                ).withOpacity(0.2),
-                                                blurRadius: 2,
-                                                inset: true,
-                                                offset: const Offset(0, -1),
-                                              ),
-                                            ]
-                                          : [
-                                              BoxShadow(
-                                                color: Color(
-                                                  0xFF999999,
-                                                ).withValues(alpha: 0.25),
-                                                blurRadius: 4,
-                                                offset: Offset(0, 2),
-                                              ),
-                                            ],
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8.0),
-                                    child: Container(
-                                      margin: EdgeInsets.only(
-                                        top: highPriority ? 4 : 0,
-                                      ),
-                                      child: Text(
-                                        "High Priority",
-                                        style: TextStyle(
-                                          color: highPriority
-                                              ? Color(0xFFD9D9D9)
-                                              : Color(0xFF4D4D4D),
-                                          fontFamily: "Hanken_Grotesk",
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
                             SchedulingSection(
                               selectedHour: selectedHour,
                               selectedMinute: selectedMinute,
                               timeTapped: timeTapped,
+                              isEditing: widget.editTask,
                               onTimeToggled: (newValue) {
                                 setState(() {
                                   timeTapped = newValue;
@@ -262,8 +163,8 @@ class _AddTaskState extends State<AddTask> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            widget.editTask ? deleteTask(context) : SizedBox(),
-                            saveTaskButton(context),
+                            widget.editTask ? deleteTask() : SizedBox(),
+                            saveTaskButton(),
                           ],
                         ),
                       ),
@@ -278,7 +179,7 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  GestureDetector saveTaskButton(BuildContext context) {
+  GestureDetector saveTaskButton() {
     return GestureDetector(
       onTap: () async {
         String taskText = _taskName.text.trim();
@@ -286,6 +187,8 @@ class _AddTaskState extends State<AddTask> {
           setState(() {
             saveClicked = true;
           });
+          await Posthog().capture(eventName: "Task Addded");
+          if (!mounted) return;
           Navigator.pop(context, {
             'name': taskText,
             'hour': selectedHour,
@@ -297,19 +200,21 @@ class _AddTaskState extends State<AddTask> {
           });
         } else {
           setState(() {
-            saveClicked = true;
+            taskBorderError = true;
+            saveIconColorChange = true;
           });
-          await Future.delayed(const Duration(milliseconds: 150));
+          await Future.delayed(const Duration(milliseconds: 200));
           setState(() {
-            saveClicked = false;
+            saveIconColorChange = false;
           });
         }
       },
-      child: Container(
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 80),
         height: 46,
         width: 46,
         decoration: BoxDecoration(
-          color: Color(0xFF1A1A1A),
+          color: saveIconColorChange ? Colors.red : Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -327,9 +232,11 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  GestureDetector deleteTask(BuildContext context) {
+  GestureDetector deleteTask() {
     return GestureDetector(
-      onTap: () {
+      onTap: () async {
+        await Posthog().capture(eventName: "Task deleted");
+        if (!mounted) return;
         Navigator.pop(context, {'delete': true});
       },
       child: Container(
@@ -353,8 +260,9 @@ class _AddTaskState extends State<AddTask> {
   }
 
   Widget taskName() {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 80),
+      margin: const EdgeInsets.only(bottom: 8),
       height: 60,
       width: 380,
 
@@ -375,24 +283,49 @@ class _AddTaskState extends State<AddTask> {
             offset: Offset(0, -1),
           ),
         ],
+        border: Border.all(
+          color: taskBorderError ? Colors.red : Colors.transparent,
+          width: 2,
+        ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Center(
         child: TextField(
+          maxLength: 30,
+          buildCounter:
+              (
+                context, {
+                required currentLength,
+                required isFocused,
+                maxLength,
+              }) => null,
+          onChanged: (value) {
+            if (value.isNotEmpty) {
+              if (taskBorderError) {
+                setState(() {
+                  taskBorderError = false;
+                });
+              }
+            }
+          },
           autofocus: widget.editTask ? false : true,
           controller: _taskName,
-          cursorColor: Colors.black,
+          cursorColor: taskBorderError ? Colors.red : Colors.black,
           style: TextStyle(
             color: Color(0xFF1A1A1A),
             fontSize: 20,
             fontWeight: FontWeight.w600,
           ),
           decoration: InputDecoration(
-            hintText: "What's to be done?",
+            hintText: taskBorderError
+                ? "Enter task name to save"
+                : "What's to be done?",
             hintStyle: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF595959),
+              color: taskBorderError
+                  ? Colors.red.withValues(alpha: 0.5)
+                  : Color(0xFF595959),
             ),
             border: InputBorder.none,
           ),
