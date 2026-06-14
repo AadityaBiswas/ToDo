@@ -159,7 +159,7 @@ class _DateAllocationState extends State<DateAllocation> {
                 hintStyle: TextStyle(
                   fontSize: 32,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.activeText,
+                  color: AppColors.taskText,
                 ),
                 border: InputBorder.none,
               ),
@@ -295,7 +295,7 @@ class _DateAllocationState extends State<DateAllocation> {
             icon,
             size: 24,
             color: quickOptionTapped
-                ? AppColors.activeText
+                ? AppColors.taskText
                 : AppColors.secondaryText,
           ),
           const SizedBox(height: 4),
@@ -309,7 +309,7 @@ class _DateAllocationState extends State<DateAllocation> {
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: quickOptionTapped
-                    ? AppColors.activeText
+                    ? AppColors.taskText
                     : AppColors.secondaryText,
                 fontSize: 10,
                 fontWeight: FontWeight.w500,

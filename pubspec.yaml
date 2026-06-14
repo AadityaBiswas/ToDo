@@ -43,6 +43,7 @@ dependencies:
   posthog_flutter: ^5.25.3
   flutter_launcher_icons: ^0.14.4
   firebase_core: ^4.10.0
+  flutter_svg: ^2.3.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +71,15 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/animations/bottombaselongclick.riv
+    - assets/icon/progress.svg
+    - assets/icon/timer.svg
+    - assets/icon/mic.svg
+    - assets/icon/add.svg
+    - assets/icon/check.svg
+    - assets/icon/loading.svg
+    - assets/icon/fire.svg
+    - assets/icon/settings.svg
+    - assets/icon/clock.svg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

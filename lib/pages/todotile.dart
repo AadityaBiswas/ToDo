@@ -5,6 +5,9 @@ import 'package:todo/pages/add_task.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:todo/pages/timer.dart';
+import 'dart:math' as math;
+
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ToDoTile extends StatefulWidget {
   final bool isTimerActive;
@@ -59,7 +62,8 @@ class _ToDoTileState extends State<ToDoTile> {
 
   @override
   Widget build(BuildContext context) {
-    double screenWidth = MediaQuery.of(context).size.width;
+    final size = MediaQuery.of(context).size;
+    final scale = math.min(size.width / 440, size.height / 956);
 
     return GestureDetector(
       onLongPress: () async {
@@ -175,184 +179,117 @@ class _ToDoTileState extends State<ToDoTile> {
         }
       },
       child: SizedBox(
-        height: 80,
+        height: 58 * scale,
+        width: double.infinity,
         child: Stack(
-          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
           children: [
-            base(screenWidth),
-            bottomContainer(screenWidth),
-            topContainer(screenWidth),
+            AnimatedPositioned(
+              duration: const Duration(milliseconds: 20),
+              curve: Curves.easeOutCubic,
+              top: widget.isCompleted || tapOnce ? 6 * scale : 0,
+              left: 0,
+              right: 0,
+              child: taskContainer(scale),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget base(double screenWidth) {
-    return Positioned(
-      bottom: 0,
-      child: Container(
-        height: 62,
-        width: screenWidth - 40 - 10,
-        decoration: BoxDecoration(
-          color: widget.isTimerActive ? Color(0xFF0D0D0D) : AppColors.bgLight,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        // child: ClipRRect(
-        //   borderRadius: BorderRadius.circular(18),
-        //   child: AnimatedOpacity(
-        //     opacity: showRiveEditTaskBorder ? 1.0 : 0.0,
-        //     duration: const Duration(milliseconds: 150),
-        //     child: rive.RiveWidgetBuilder(
-        //       fileLoader: riveFileLoader,
-        //       builder: (context, state) => switch (state) {
-        //         rive.RiveLoading() => const SizedBox.shrink(),
-        //         rive.RiveFailed() => const SizedBox.shrink(),
-        //         rive.RiveLoaded() => rive.RiveWidget(
-        //           controller: state.controller,
-        //           fit: rive.Fit.cover,
-        //         ),
-        //       },
-        //     ),
-        //   ),
-        // ),
-      ),
-    );
-  }
-
-  AnimatedContainer bottomContainer(double screenWidth) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 20),
-      margin: EdgeInsets.only(top: 12),
-      width: screenWidth - 40 - 20,
-      height: widget.isCompleted || tapOnce ? 0 : 60,
+  Widget taskContainer(double scale) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 18 * scale),
+      width: 400 * scale,
+      height: 50 * scale,
       decoration: BoxDecoration(
-        color: widget.isTimerActive ? Color(0xFF262626) : AppColors.bgLighter,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: defaultBoxShadowBottomTile(),
-      ),
-    );
-  }
-
-  AnimatedContainer topContainer(double screenWidth) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 80),
-      curve: Curves.easeInOutCubic,
-      margin: EdgeInsets.only(top: widget.isCompleted || tapOnce ? 21 : 6),
-      padding: EdgeInsets.all(16),
-      width: screenWidth - 40 - 20,
-      height: widget.isCompleted || tapOnce ? 54 : 60,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: widget.isTimerActive
-            ? transparentBoxShadow()
-            : widget.isCompleted || tapOnce
-            ? completedBoxShadowTopTile()
-            : defaultBoxShadowTopTile(),
+        borderRadius: BorderRadius.circular(10),
         color: widget.isTimerActive
             ? Color(0xFF333333)
-            : widget.isCompleted || tapOnce
-            ? AppColors.bgCompleted
-            : AppColors.bgLightest,
+            : AppColors.bgTaskCardIncomplete,
+        border: Border(
+          bottom: BorderSide(
+            color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
+            width: widget.isCompleted || tapOnce ? 2 * scale : 8 * scale,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+          top: BorderSide(
+            color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+          left: BorderSide(
+            color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+          right: BorderSide(
+            color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
+            width: 2,
+            strokeAlign: BorderSide.strokeAlignOutside,
+          ),
+        ),
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          buildTaskName(),
-          if (!(widget.taskHour == "0" && widget.taskMinute == "0"))
-            Row(children: [SizedBox(width: 4), timeAllocated()]),
-        ],
+      child: Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            buildTaskName(),
+            if (!(widget.taskHour == "0" && widget.taskMinute == "0"))
+              Row(
+                children: [
+                  SizedBox(
+                    height: 20 * scale,
+                    width: 60 * scale,
+                    child: timeAllocated(scale),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
 
   Widget buildTaskName() {
     return AnimatedDefaultTextStyle(
-      duration: Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 100),
       curve: Curves.easeInOut,
-      style: AppTextStyles.taskTitle.copyWith(
+      style: AppTextStyles.taskText.copyWith(
         color: widget.isTimerActive
-            ? Colors.white
-            : widget.isCompleted || tapOnce
-            ? AppColors.inactiveText
-            : AppColors.activeText,
+            ? const Color(0xFFF2F2F2)
+            : AppTextStyles.taskText.color,
       ),
+      child: Text(
+        widget.isTimerActive ? "Start timer" : widget.taskName,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
+  }
 
-      child: Expanded(
-        child: Text(
-          widget.isTimerActive ? "Start timer" : widget.taskName,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+  Widget timeAllocated(double scale) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          'assets/icon/clock.svg',
+          width: 12 * scale,
+          height: 12 * scale,
         ),
-      ),
+        SizedBox(width: 4),
+        Text(
+          widget.taskHour == "0" && widget.taskMinute == "0"
+              ? ""
+              : widget.taskHour == "0"
+              ? "${widget.taskMinute}m"
+              : widget.taskMinute == "0"
+              ? "${widget.taskHour}h"
+              : "${widget.taskHour}h ${widget.taskMinute}m",
+          style: AppTextStyles.taskTime,
+        ),
+      ],
     );
-  }
-
-  Text timeAllocated() {
-    return Text(
-      widget.taskHour == "0" && widget.taskMinute == "0" || widget.isTimerActive
-          ? ""
-          : widget.taskHour == "0"
-          ? "${widget.taskMinute}m"
-          : widget.taskMinute == "0"
-          ? "${widget.taskHour}h"
-          : "${widget.taskHour}h ${widget.taskMinute}m",
-      style: AppTextStyles.taskTime.copyWith(
-        color: widget.isCompleted || tapOnce
-            ? AppColors.inactiveText
-            : AppColors.secondaryText,
-      ),
-    );
-  }
-
-  List<BoxShadow> defaultBoxShadowBottomTile() {
-    return [
-      BoxShadow(
-        color: Colors.black.withOpacity(0.3),
-        blurRadius: 5,
-        offset: Offset(0, 2),
-      ),
-    ];
-  }
-
-  List<BoxShadow> defaultBoxShadowTopTile() {
-    return [
-      BoxShadow(
-        color: Color(0xFFFFFFFF).withOpacity(0.25),
-        blurRadius: 8,
-        inset: true,
-        offset: Offset(0, 6),
-      ),
-      BoxShadow(
-        color: Color(0xFF262626).withOpacity(0.05),
-        spreadRadius: 2,
-        blurRadius: 4,
-        offset: Offset(0, 4),
-      ),
-    ];
-  }
-
-  List<BoxShadow> completedBoxShadowTopTile() {
-    return [
-      BoxShadow(
-        color: Colors.black.withValues(alpha: 0.4),
-        blurRadius: 6,
-        inset: true,
-        offset: Offset(0, 3),
-      ),
-      BoxShadow(
-        color: Colors.white.withValues(alpha: 0.45),
-        blurRadius: 12,
-        inset: true,
-        offset: Offset(0, -2),
-      ),
-    ];
-  }
-
-  List<BoxShadow> transparentBoxShadow() {
-    return [
-      BoxShadow(color: Colors.transparent, blurRadius: 0, offset: Offset.zero),
-      BoxShadow(color: Colors.transparent, blurRadius: 0, offset: Offset.zero),
-    ];
   }
 }
