@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
 import 'package:todo/pages/time_allocation.dart';
+import 'dart:math' as math;
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SchedulingSection extends StatefulWidget {
   final bool timeTapped;
@@ -29,13 +31,17 @@ class _SchedulingSectionState extends State<SchedulingSection> {
 
   @override
   Widget build(BuildContext context) {
+    bool timeSelectedPreviously =
+        !(widget.selectedHour == "0" && widget.selectedMinute == "0");
+    final size = MediaQuery.of(context).size;
+    final scale = math.min(size.width / 440, size.height / 956);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [timeSelector(context)],
+      children: [timeSelector(context, scale)],
     );
   }
 
-  GestureDetector timeSelector(BuildContext context) {
+  GestureDetector timeSelector(BuildContext context, double scale) {
     return GestureDetector(
       onTap: () async {
         setState(() {
@@ -52,7 +58,6 @@ class _SchedulingSectionState extends State<SchedulingSection> {
                   initialHour: widget.selectedHour,
                   initialMinute: widget.selectedMinute,
                   oneTime: false,
-                  isEditing: widget.isEditing,
                 );
               },
             );
@@ -68,96 +73,54 @@ class _SchedulingSectionState extends State<SchedulingSection> {
       },
       child: Stack(
         children: [
-          // Base shadow layer
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 50),
-            height: 34,
-            width: 82,
-            margin: const EdgeInsets.only(top: 4),
-            decoration: BoxDecoration(
-              color: _isPressed
-                  ? const Color(0xFFBFBFBF).withValues(alpha: 0)
-                  : const Color(0xFFBFBFBF),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF333333).withValues(alpha: 0.25),
-                  blurRadius: 2,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-          ),
           // Top animated physical layer
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 80),
-            curve: Curves.easeInOutCubic,
-            height: 34,
-            width: 82,
-            margin: EdgeInsets.only(
-              top: _isPressed ? 4 : 0, // Pushes down when pressed
+          if (!(widget.selectedHour == "0" && widget.selectedMinute == "0"))
+            Container(
+              height: 40 * scale,
+              width: widget.selectedHour != "0" && widget.selectedMinute != "0"
+                  ? 70 * scale
+                  : 60 * scale,
+              decoration: BoxDecoration(
+                color: Color(0xFF333333),
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  top: BorderSide(color: Color(0xFF262626), width: 2),
+                  right: BorderSide(color: Color(0xFF262626), width: 2),
+                  left: BorderSide(color: Color(0xFF262626), width: 2),
+                  bottom: BorderSide(color: Color(0xFF262626), width: 6),
+                ),
+              ),
             ),
-            decoration: BoxDecoration(
-              color: _isPressed
-                  ? const Color(0xFFB3B3B3)
-                  : const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: _isPressed
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF404040).withValues(alpha: 0.3),
-                        blurRadius: 4,
-                        inset: true,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFFE5E5E5).withValues(alpha: 0.2),
-                        blurRadius: 2,
-                        inset: true,
-                        offset: const Offset(0, -1),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: const Color(0xFF999999).withValues(alpha: 0.25),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-            ),
-          ),
           // Text Layer
-          Container(
-            margin: EdgeInsets.only(top: _isPressed ? 4 : 0),
-            child: _buildTimeLabel(),
-          ),
+          Container(child: _buildTimeLabel(scale)),
         ],
       ),
     );
   }
 
-  Widget _buildTimeLabel() {
+  Widget _buildTimeLabel(double scale) {
     final bool isZero =
         widget.selectedHour == "0" && widget.selectedMinute == "0";
 
-    // Animate text color just like the high priority button
-    final Color textColor = _isPressed
-        ? const Color(0xFFD9D9D9)
-        : const Color(0xFF4D4D4D);
-
     if (isZero) {
-      return SizedBox(
-        height: 34,
-        width: 82,
+      return Container(
+        height: 40 * scale,
+        width: 40 * scale,
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2F2F2),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+            right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+            left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+            bottom: BorderSide(color: Color(0xFFE0E0E0), width: 6),
+          ),
+        ),
         child: Center(
-          child: Text(
-            "Add time",
-            style: TextStyle(
-              fontSize: 14,
-              color: textColor,
-              fontFamily: "Hanken_Grotesk",
-              fontWeight: FontWeight.bold, // matched to high priority button
-            ),
+          child: SvgPicture.asset(
+            'assets/icon/light_clock.svg',
+            width: 28 * scale,
+            height: 28 * scale,
           ),
         ),
       );
@@ -169,9 +132,12 @@ class _SchedulingSectionState extends State<SchedulingSection> {
         ? "${widget.selectedHour}h"
         : "${widget.selectedHour}h ${widget.selectedMinute}m";
 
-    return SizedBox(
-      height: 34,
-      width: 82,
+    return Container(
+      padding: EdgeInsets.only(bottom: 4),
+      height: 40 * scale,
+      width: widget.selectedHour != "0" && widget.selectedMinute != "0"
+          ? 70 * scale
+          : 60 * scale,
       child: Center(
         child: Text(
           timeString,
@@ -179,7 +145,7 @@ class _SchedulingSectionState extends State<SchedulingSection> {
             fontFamily: "Hanken_Grotesk",
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: textColor,
+            color: Color(0xFFF2F2F2),
           ),
         ),
       ),

@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> {
                           height: 40 * scale,
                         ),
                         SvgPicture.asset(
-                          'assets/icon/timer.svg',
+                          'assets/icon/dark_clock.svg',
                           width: 40 * scale,
                           height: 40 * scale,
                         ),

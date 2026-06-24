@@ -80,6 +80,9 @@ flutter:
     - assets/icon/fire.svg
     - assets/icon/settings.svg
     - assets/icon/clock.svg
+    - assets/icon/dark_clock.svg
+    - assets/icon/light_clock.svg
+    - assets/icon/priority_flag.svg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

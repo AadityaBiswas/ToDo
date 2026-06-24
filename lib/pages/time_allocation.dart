@@ -3,18 +3,17 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:todo/pages/timer.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'dart:math' as math;
 
 class TimeAllocation extends StatefulWidget {
   final String initialHour;
   final String initialMinute;
   final bool oneTime;
-  final bool isEditing;
   const TimeAllocation({
     super.key,
     required this.initialHour,
     required this.initialMinute,
     required this.oneTime,
-    this.isEditing = false,
   });
 
   @override
@@ -44,134 +43,114 @@ class _TimeAllocationState extends State<TimeAllocation> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-
-    return Padding(
-      padding: EdgeInsets.only(bottom: 30),
-      child: SingleChildScrollView(
-        child: Stack(
-          children: [
-            Container(
-              height: 170,
-              width: screenWidth - 20,
-              margin: EdgeInsets.only(top: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFBFBFBF),
-                borderRadius: const BorderRadius.all(Radius.circular(18)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF4D4D4D).withValues(alpha: 0.9),
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+    final size = MediaQuery.of(context).size;
+    final scale = math.min(size.width / 440, size.height / 956);
+    bool isEditing = (widget.initialHour != "0" || widget.initialMinute != "0");
+    return SingleChildScrollView(
+      child: Stack(
+        children: [
+          Container(
+            height: 134 * scale,
+            width: size.width,
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFFFFF),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
               ),
             ),
-            Container(
-              height: 170,
-              width: screenWidth - 20,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 14),
-              decoration: BoxDecoration(
-                color: const Color(0xFFE6E6E6),
-                borderRadius: const BorderRadius.all(Radius.circular(18)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF4D4D4D).withValues(alpha: 0.10),
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  taskTime(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        height: 52,
-                        width: 245,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFBFBFBF),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.20),
-                              blurRadius: 6,
-                              inset: true,
-                              offset: Offset(0, 3),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.20),
-                              blurRadius: 4,
-                              inset: true,
-                              offset: Offset(0, -1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            _buildTimePill(
-                              label: "1h",
-                              isActive: oneHour,
-                              onTap: () async {
-                                if (oneHour ||
-                                    (localHour == 1 && localMinute == 0)) {
-                                  setState(() {
-                                    oneHour = false;
-                                  });
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 10),
-                                  );
-                                  setState(() {
-                                    localHour = 0;
-                                    localMinute = 0;
-                                  });
-                                  return; // Exit early!
-                                }
+            child: Column(
+              children: [
+                taskTime(scale),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    SizedBox(
+                      height: 38 * scale,
+                      width: 204 * scale,
 
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildTimePill(
+                            scale,
+                            label: "1h",
+                            isActive: oneHour,
+                            onTap: () async {
+                              if (oneHour ||
+                                  (localHour == 1 && localMinute == 0)) {
                                 setState(() {
-                                  oneHour = true;
-                                  fortyFive = false;
-                                  thirty = false;
+                                  oneHour = false;
                                 });
                                 await Future.delayed(
                                   const Duration(milliseconds: 10),
                                 );
                                 setState(() {
-                                  localHour = 1;
+                                  localHour = 0;
                                   localMinute = 0;
                                 });
-                              },
-                            ),
+                                return; // Exit early!
+                              }
 
-                            _buildTimePill(
-                              label: "45m",
-                              isActive: fortyFive,
-                              onTap: () async {
-                                if (fortyFive ||
-                                    (localHour == 0 && localMinute == 45)) {
-                                  setState(() {
-                                    fortyFive = false;
-                                  });
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 10),
-                                  );
-                                  setState(() {
-                                    localHour = 0;
-                                    localMinute = 0;
-                                  });
-                                  return;
-                                }
+                              setState(() {
+                                oneHour = true;
+                                fortyFive = false;
+                                thirty = false;
+                              });
+                              await Future.delayed(
+                                const Duration(milliseconds: 10),
+                              );
+                              setState(() {
+                                localHour = 1;
+                                localMinute = 0;
+                              });
+                            },
+                          ),
 
+                          _buildTimePill(
+                            scale,
+                            label: "45m",
+                            isActive: fortyFive,
+                            onTap: () async {
+                              if (fortyFive ||
+                                  (localHour == 0 && localMinute == 45)) {
                                 setState(() {
-                                  oneHour = false;
-                                  fortyFive = true;
+                                  fortyFive = false;
+                                });
+                                await Future.delayed(
+                                  const Duration(milliseconds: 10),
+                                );
+                                setState(() {
+                                  localHour = 0;
+                                  localMinute = 0;
+                                });
+                                return;
+                              }
+
+                              setState(() {
+                                oneHour = false;
+                                fortyFive = true;
+                                thirty = false;
+                              });
+                              await Future.delayed(
+                                const Duration(milliseconds: 10),
+                              );
+                              setState(() {
+                                localHour = 0;
+                                localMinute = 45;
+                              });
+                            },
+                          ),
+
+                          _buildTimePill(
+                            scale,
+                            label: "30m",
+                            isActive: thirty,
+                            onTap: () async {
+                              if (thirty ||
+                                  (localHour == 0 && localMinute == 30)) {
+                                setState(() {
                                   thirty = false;
                                 });
                                 await Future.delayed(
@@ -179,95 +158,70 @@ class _TimeAllocationState extends State<TimeAllocation> {
                                 );
                                 setState(() {
                                   localHour = 0;
-                                  localMinute = 45;
+                                  localMinute = 0;
                                 });
-                              },
-                            ),
+                                return;
+                              }
 
-                            _buildTimePill(
-                              label: "30m",
-                              isActive: thirty,
-                              onTap: () async {
-                                if (thirty ||
-                                    (localHour == 0 && localMinute == 30)) {
-                                  setState(() {
-                                    thirty = false;
-                                  });
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 10),
-                                  );
-                                  setState(() {
-                                    localHour = 0;
-                                    localMinute = 0;
-                                  });
-                                  return;
-                                }
-
-                                setState(() {
-                                  oneHour = false;
-                                  fortyFive = false;
-                                  thirty = true;
-                                });
-                                await Future.delayed(
-                                  const Duration(milliseconds: 10),
-                                );
-                                setState(() {
-                                  localHour = 0;
-                                  localMinute = 30;
-                                });
-                              },
-                            ),
-                          ],
-                        ),
+                              setState(() {
+                                oneHour = false;
+                                fortyFive = false;
+                                thirty = true;
+                              });
+                              await Future.delayed(
+                                const Duration(milliseconds: 10),
+                              );
+                              setState(() {
+                                localHour = 0;
+                                localMinute = 30;
+                              });
+                            },
+                          ),
+                        ],
                       ),
-                      SizedBox(
-                        height: 46,
-                        width: widget.oneTime || !widget.isEditing ? 46 : 100,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (!widget.oneTime && widget.isEditing)
-                              deleteButton(context),
-                            saveButton(context),
-                          ],
-                        ),
+                    ),
+                    SizedBox(
+                      height: 46,
+                      width: widget.oneTime || !isEditing ? 46 : 90,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (!widget.oneTime && isEditing)
+                            deleteButton(context, scale),
+                          saveButton(context, scale),
+                        ],
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                  ],
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget taskTime() {
+  Widget taskTime(double scale) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      height: 80,
-      width: 380,
+      margin: const EdgeInsets.only(bottom: 2),
+      height: 60 * scale,
+      width: 416 * scale,
 
       decoration: BoxDecoration(
-        color: const Color(0xFFB3B3B3),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF2F2F2),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 6,
-            inset: true,
-            offset: Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 4,
             inset: true,
-            offset: Offset(0, -1),
+            offset: Offset(0, 2),
           ),
         ],
+        border: Border.all(color: Color(0xFFCCCCCC), width: 2),
       ),
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -308,72 +262,30 @@ class _TimeAllocationState extends State<TimeAllocation> {
                 minusTapped = false;
               });
             },
-            child: Stack(
-              children: [
-                Container(
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: 3),
-                  decoration: BoxDecoration(
-                    color: minusTapped
-                        ? Color(0xFFBFBFBF).withValues(alpha: 0)
-                        : Color(0xFFBFBFBF),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFF333333).withValues(alpha: 0.25),
-                        blurRadius: 2,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(8),
+            child: Container(
+              margin: EdgeInsets.only(top: minusTapped ? 4 : 0),
+              height: 40 * scale,
+              width: 40 * scale,
+              decoration: BoxDecoration(
+                color: Color(0xFFF2F2F2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  bottom: BorderSide(
+                    color: Color(0xFFE0E0E0),
+                    width: minusTapped ? 2 : 6,
                   ),
                 ),
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 80),
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: minusTapped ? 3 : 0),
-                  decoration: BoxDecoration(
-                    color: minusTapped ? Color(0xFF999999) : Color(0xFFD9D9D9),
-                    boxShadow: minusTapped
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF404040).withOpacity(0.3),
-                              blurRadius: 4,
-                              inset: true,
-                              offset: const Offset(0, 2),
-                            ),
-                            BoxShadow(
-                              color: const Color(0xFFE5E5E5).withOpacity(0.2),
-                              blurRadius: 2,
-                              inset: true,
-                              offset: const Offset(0, -1),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Color(0xFF999999).withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.remove,
+                  color: Color(0xFF757575),
+                  size: 25 * scale,
                 ),
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 80),
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: minusTapped ? 3 : 0),
-                  child: Center(
-                    child: Icon(
-                      Icons.remove,
-                      color: minusTapped ? Colors.white : Color(0xFF757575),
-                      size: 25,
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
           Text(
@@ -386,8 +298,8 @@ class _TimeAllocationState extends State<TimeAllocation> {
                 : "${localHour}h ${localMinute}m",
             style: TextStyle(
               fontFamily: "Hanken_Grotesk",
-              fontSize: 38,
-              color: Color(0xFF4D4D4D),
+              fontSize: 32 * scale,
+              color: Color(0xFF999999),
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -417,159 +329,28 @@ class _TimeAllocationState extends State<TimeAllocation> {
                 plusTapped = false;
               });
             },
-            child: Stack(
-              children: [
-                Container(
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: 3),
-                  decoration: BoxDecoration(
-                    color: plusTapped
-                        ? Color(0xFFBFBFBF).withValues(alpha: 0)
-                        : Color(0xFFBFBFBF),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFF333333).withValues(alpha: 0.25),
-                        blurRadius: 2,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                    borderRadius: BorderRadius.circular(8),
+            child: Container(
+              margin: EdgeInsets.only(top: plusTapped ? 4 : 0),
+              height: 40 * scale,
+              width: 40 * scale,
+              decoration: BoxDecoration(
+                color: Color(0xFFF2F2F2),
+                borderRadius: BorderRadius.circular(8),
+                border: Border(
+                  top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                  bottom: BorderSide(
+                    color: Color(0xFFE0E0E0),
+                    width: plusTapped ? 2 : 6,
                   ),
                 ),
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 80),
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: plusTapped ? 3 : 0),
-                  decoration: BoxDecoration(
-                    color: plusTapped ? Color(0xFF999999) : Color(0xFFD9D9D9),
-                    boxShadow: plusTapped
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF404040).withOpacity(0.3),
-                              blurRadius: 4,
-                              inset: true,
-                              offset: const Offset(0, 2),
-                            ),
-                            BoxShadow(
-                              color: const Color(0xFFE5E5E5).withOpacity(0.2),
-                              blurRadius: 2,
-                              inset: true,
-                              offset: const Offset(0, -1),
-                            ),
-                          ]
-                        : [
-                            BoxShadow(
-                              color: Color(0xFF999999).withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              offset: Offset(0, 2),
-                            ),
-                          ],
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                AnimatedContainer(
-                  duration: Duration(milliseconds: 80),
-                  height: 45,
-                  width: 45,
-                  margin: EdgeInsets.only(top: plusTapped ? 3 : 0),
-                  child: Center(
-                    child: Icon(
-                      Icons.add,
-                      color: plusTapped ? Colors.white : Color(0xFF757575),
-                      size: 25,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  GestureDetector _buildTimePill({
-    required String label,
-    required bool isActive,
-    required VoidCallback onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Stack(
-        children: [
-          // Base shadow layer
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 50),
-            height: 32,
-            width: 70,
-            margin: const EdgeInsets.only(top: 3),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFFBFBFBF).withValues(alpha: 0)
-                  : const Color(0xFFBFBFBF),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF333333).withValues(alpha: 0.25),
-                  blurRadius: 2,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-          ),
-          // Top animating pill layer
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 80),
-            curve: Curves.easeInOutCubic,
-            height: 32,
-            width: 70,
-            margin: EdgeInsets.only(top: isActive ? 3 : 0),
-            decoration: BoxDecoration(
-              color: isActive
-                  ? const Color(0xFFB3B3B3)
-                  : const Color(0xFFD9D9D9),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: isActive
-                  ? [
-                      BoxShadow(
-                        color: const Color(0xFF404040).withOpacity(0.3),
-                        blurRadius: 4,
-                        inset: true,
-                        offset: const Offset(0, 2),
-                      ),
-                      BoxShadow(
-                        color: const Color(0xFFE5E5E5).withOpacity(0.2),
-                        blurRadius: 2,
-                        inset: true,
-                        offset: const Offset(0, -1),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: const Color(0xFF999999).withValues(alpha: 0.25),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-            ),
-          ),
-          // Text layer
-          Container(
-            height: 32,
-            width: 70,
-            margin: EdgeInsets.only(top: isActive ? 3 : 0),
-            child: Center(
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isActive
-                      ? const Color(0xFFD9D9D9)
-                      : const Color(0xFF4D4D4D),
-                  fontFamily: "Hanken_Grotesk",
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.add,
+                  color: Color(0xFF757575),
+                  size: 25 * scale,
                 ),
               ),
             ),
@@ -579,7 +360,56 @@ class _TimeAllocationState extends State<TimeAllocation> {
     );
   }
 
-  GestureDetector saveButton(BuildContext context) {
+  GestureDetector _buildTimePill(
+    double scale, {
+    required String label,
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: EdgeInsets.only(top: isActive ? 4 : 0),
+        height: 36 * scale,
+        width: 60 * scale,
+        decoration: BoxDecoration(
+          color: isActive ? Color(0xFF333333) : Color(0xFFF2F2F2),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            top: BorderSide(
+              color: isActive ? Color(0xFF242424) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            right: BorderSide(
+              color: isActive ? Color(0xFF242424) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            left: BorderSide(
+              color: isActive ? Color(0xFF242424) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            bottom: BorderSide(
+              color: isActive ? Color(0xFF242424) : Color(0xFFE0E0E0),
+              width: isActive ? 2 : 6,
+            ),
+          ),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: isActive ? Color(0xFFF2F2F2) : Color(0xFF666666),
+              fontFamily: "Hanken_Grotesk",
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector saveButton(BuildContext context, double scale) {
     return GestureDetector(
       onTap: () async {
         if (!context.mounted) return;
@@ -626,50 +456,50 @@ class _TimeAllocationState extends State<TimeAllocation> {
         }
       },
       child: Container(
-        height: 46,
-        width: 46,
+        margin: EdgeInsets.only(top: saveTime ? 4 : 0),
+        height: 40 * scale,
+        width: 40 * scale,
         decoration: BoxDecoration(
-          color: const Color(0xFF00BD00),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.45),
-              blurRadius: 6,
-              inset: true,
-              offset: const Offset(0, 1),
+          color: Color(0xFF333333),
+          borderRadius: BorderRadius.circular(10),
+          border: Border(
+            top: BorderSide(color: Color(0xFF242424), width: 2),
+            right: BorderSide(color: Color(0xFF242424), width: 2),
+            left: BorderSide(color: Color(0xFF242424), width: 2),
+            bottom: BorderSide(
+              color: Color(0xFF242424),
+              width: saveTime ? 2 : 6,
             ),
-          ],
+          ),
         ),
         child: Center(
           child: Icon(
             widget.oneTime ? Icons.play_arrow : Icons.arrow_downward_rounded,
             color: Colors.white,
-            size: 20,
+            size: 22,
           ),
         ),
       ),
     );
   }
 
-  GestureDetector deleteButton(BuildContext context) {
+  GestureDetector deleteButton(BuildContext context, double scale) {
     return GestureDetector(
       onTap: () async {
         Navigator.pop(context, (timeHour: "0", timeMinute: "0"));
       },
       child: Container(
-        height: 46,
-        width: 46,
+        height: 40 * scale,
+        width: 40 * scale,
         decoration: BoxDecoration(
-          color: Colors.redAccent,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.45),
-              blurRadius: 6,
-              inset: true,
-              offset: const Offset(0, 1),
-            ),
-          ],
+          color: Color(0xFFFF6669),
+          borderRadius: BorderRadius.circular(10),
+          border: Border(
+            top: BorderSide(color: Color(0xFFFF383C), width: 2),
+            right: BorderSide(color: Color(0xFFFF383C), width: 2),
+            left: BorderSide(color: Color(0xFFFF383C), width: 2),
+            bottom: BorderSide(color: Color(0xFFFF383C), width: 6),
+          ),
         ),
         child: Center(
           child: Icon(

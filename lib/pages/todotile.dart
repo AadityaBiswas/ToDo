@@ -184,9 +184,7 @@ class _ToDoTileState extends State<ToDoTile> {
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            AnimatedPositioned(
-              duration: const Duration(milliseconds: 20),
-              curve: Curves.easeOutCubic,
+            Positioned(
               top: widget.isCompleted || tapOnce ? 6 * scale : 0,
               left: 0,
               right: 0,

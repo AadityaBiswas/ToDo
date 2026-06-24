@@ -4,6 +4,7 @@ import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'scheduling_section.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'dart:math' as math;
 
 class AddTask extends StatefulWidget {
   final bool editTask;
@@ -61,100 +62,61 @@ class _AddTaskState extends State<AddTask> {
 
   @override
   Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final scale = math.min(size.width / 440, size.height / 956);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
     return Padding(
-      padding: EdgeInsets.only(
-        bottom: keyboardHeight > 0 ? keyboardHeight + 20 : 30,
-      ),
+      padding: EdgeInsets.only(bottom: keyboardHeight > 0 ? keyboardHeight : 0),
       child: SingleChildScrollView(
         child: Stack(
           children: [
             Container(
-              height: 160,
-              width: screenWidth - 20,
-              margin: EdgeInsets.only(top: 8),
-              decoration: BoxDecoration(
-                color: const Color(0xFFBFBFBF),
-                borderRadius: const BorderRadius.all(Radius.circular(18)),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF4D4D4D).withValues(alpha: 0.9),
-                    blurRadius: 4,
-                    offset: Offset(0, 4),
-                  ),
-                ],
+              height: 134 * scale,
+              width: screenWidth,
+              padding: const EdgeInsets.only(
+                top: 14,
+                right: 10,
+                left: 10,
+                bottom: 12,
               ),
-            ),
-            Container(
-              height: 160,
-              width: screenWidth - 20,
-              padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
               decoration: BoxDecoration(
-                color: const Color(0xFFE6E6E6),
-                borderRadius: const BorderRadius.all(Radius.circular(18)),
+                color: const Color(0xFFFFFFFF),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  topRight: Radius.circular(12),
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0xFF4D4D4D).withValues(alpha: 0.10),
+                    color: Color(0xFF000000).withValues(alpha: 0.10),
                     blurRadius: 4,
-                    offset: Offset(0, 4),
+                    offset: Offset(0, -1),
                   ),
                 ],
               ),
               child: Column(
                 children: [
-                  taskName(),
+                  taskName(scale),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8,
-                          horizontal: 8,
-                        ),
-                        height: 56,
-                        width: 100,
-                        decoration: BoxDecoration(
-                          color: Color(0xFFBFBFBF),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
-                              blurRadius: 6,
-                              inset: true,
-                              offset: Offset(0, 3),
-                            ),
-                            BoxShadow(
-                              color: Colors.white.withValues(alpha: 0.25),
-                              blurRadius: 4,
-                              inset: true,
-                              offset: Offset(0, -1),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SchedulingSection(
-                              selectedHour: selectedHour,
-                              selectedMinute: selectedMinute,
-                              timeTapped: timeTapped,
-                              isEditing: widget.editTask,
-                              onTimeToggled: (newValue) {
-                                setState(() {
-                                  timeTapped = newValue;
-                                });
-                              },
-                              onTimeSelected: ((hour, minute) {
-                                setState(() {
-                                  selectedHour = hour;
-                                  selectedMinute = minute;
-                                  timeTapped = true;
-                                });
-                              }),
-                            ),
-                          ],
-                        ),
+                      SchedulingSection(
+                        selectedHour: selectedHour,
+                        selectedMinute: selectedMinute,
+                        timeTapped: timeTapped,
+                        isEditing: widget.editTask,
+                        onTimeToggled: (newValue) {
+                          setState(() {
+                            timeTapped = newValue;
+                          });
+                        },
+                        onTimeSelected: ((hour, minute) {
+                          setState(() {
+                            selectedHour = hour;
+                            selectedMinute = minute;
+                            timeTapped = true;
+                          });
+                        }),
                       ),
 
                       SizedBox(
@@ -163,8 +125,8 @@ class _AddTaskState extends State<AddTask> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            widget.editTask ? deleteTask() : SizedBox(),
-                            saveTaskButton(),
+                            widget.editTask ? deleteTask(scale) : SizedBox(),
+                            saveTaskButton(scale),
                           ],
                         ),
                       ),
@@ -179,7 +141,7 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  GestureDetector saveTaskButton() {
+  GestureDetector saveTaskButton(double scale) {
     return GestureDetector(
       onTap: () async {
         String taskText = _taskName.text.trim();
@@ -211,19 +173,11 @@ class _AddTaskState extends State<AddTask> {
       },
       child: AnimatedContainer(
         duration: Duration(milliseconds: 80),
-        height: 46,
-        width: 46,
+        height: 40 * scale,
+        width: 40 * scale,
         decoration: BoxDecoration(
           color: saveIconColorChange ? Colors.red : Color(0xFF1A1A1A),
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.white.withValues(alpha: 0.35),
-              blurRadius: 6,
-              inset: true,
-              offset: Offset(0, 1),
-            ),
-          ],
+          borderRadius: BorderRadius.circular(10),
         ),
         child: Center(
           child: Icon(Icons.arrow_upward, color: Colors.white, size: 20),
@@ -232,7 +186,7 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  GestureDetector deleteTask() {
+  GestureDetector deleteTask(double scale) {
     return GestureDetector(
       onTap: () async {
         await Posthog().capture(eventName: "Task deleted");
@@ -240,8 +194,8 @@ class _AddTaskState extends State<AddTask> {
         Navigator.pop(context, {'delete': true});
       },
       child: Container(
-        height: 46,
-        width: 46,
+        height: 40 * scale,
+        width: 40 * scale,
         decoration: BoxDecoration(
           color: Colors.red,
           borderRadius: BorderRadius.circular(12),
@@ -259,36 +213,30 @@ class _AddTaskState extends State<AddTask> {
     );
   }
 
-  Widget taskName() {
+  Widget taskName(double scale) {
     return AnimatedContainer(
       duration: Duration(milliseconds: 80),
       margin: const EdgeInsets.only(bottom: 8),
-      height: 60,
-      width: 380,
+      height: 46 * scale,
+      width: 416 * scale,
 
       decoration: BoxDecoration(
-        color: const Color(0xFFB3B3B3),
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF2F2F2),
+        borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.25),
-            blurRadius: 6,
-            inset: true,
-            offset: Offset(0, 3),
-          ),
-          BoxShadow(
-            color: Colors.white.withValues(alpha: 0),
+            color: Colors.black.withValues(alpha: 0.15),
             blurRadius: 4,
             inset: true,
-            offset: Offset(0, -1),
+            offset: Offset(0, 2),
           ),
         ],
         border: Border.all(
-          color: taskBorderError ? Colors.red : Colors.transparent,
+          color: taskBorderError ? Colors.red : Color(0xFFCCCCCC),
           width: 2,
         ),
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Center(
         child: TextField(
           maxLength: 30,
@@ -310,22 +258,22 @@ class _AddTaskState extends State<AddTask> {
           },
           autofocus: widget.editTask ? false : true,
           controller: _taskName,
-          cursorColor: taskBorderError ? Colors.red : Colors.black,
+          cursorColor: taskBorderError ? Colors.red : Color(0xFF999999),
           style: TextStyle(
-            color: Color(0xFF1A1A1A),
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+            color: Color(0xFF464545),
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
           ),
           decoration: InputDecoration(
             hintText: taskBorderError
                 ? "Enter task name to save"
                 : "What's to be done?",
             hintStyle: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
               color: taskBorderError
                   ? Colors.red.withValues(alpha: 0.5)
-                  : Color(0xFF595959),
+                  : Color(0xFF999999),
             ),
             border: InputBorder.none,
           ),
