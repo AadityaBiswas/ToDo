@@ -27,12 +27,8 @@ class SchedulingSection extends StatefulWidget {
 }
 
 class _SchedulingSectionState extends State<SchedulingSection> {
-  bool _isPressed = false;
-
   @override
   Widget build(BuildContext context) {
-    bool timeSelectedPreviously =
-        !(widget.selectedHour == "0" && widget.selectedMinute == "0");
     final size = MediaQuery.of(context).size;
     final scale = math.min(size.width / 440, size.height / 956);
     return Row(
@@ -44,9 +40,7 @@ class _SchedulingSectionState extends State<SchedulingSection> {
   GestureDetector timeSelector(BuildContext context, double scale) {
     return GestureDetector(
       onTap: () async {
-        setState(() {
-          _isPressed = true;
-        });
+        setState(() {});
 
         final result =
             await showModalBottomSheet<({String timeHour, String timeMinute})>(
@@ -62,9 +56,7 @@ class _SchedulingSectionState extends State<SchedulingSection> {
               },
             );
 
-        setState(() {
-          _isPressed = false;
-        });
+        setState(() {});
 
         if (result != null) {
           widget.onTimeSelected(result.timeHour, result.timeMinute);
@@ -76,7 +68,7 @@ class _SchedulingSectionState extends State<SchedulingSection> {
           // Top animated physical layer
           if (!(widget.selectedHour == "0" && widget.selectedMinute == "0"))
             Container(
-              height: 40 * scale,
+              height: 45 * scale,
               width: widget.selectedHour != "0" && widget.selectedMinute != "0"
                   ? 70 * scale
                   : 60 * scale,
@@ -104,8 +96,8 @@ class _SchedulingSectionState extends State<SchedulingSection> {
 
     if (isZero) {
       return Container(
-        height: 40 * scale,
-        width: 40 * scale,
+        height: 45 * scale,
+        width: 45 * scale,
         decoration: BoxDecoration(
           color: const Color(0xFFF2F2F2),
           borderRadius: BorderRadius.circular(8),
@@ -119,8 +111,8 @@ class _SchedulingSectionState extends State<SchedulingSection> {
         child: Center(
           child: SvgPicture.asset(
             'assets/icon/light_clock.svg',
-            width: 28 * scale,
-            height: 28 * scale,
+            width: 32 * scale,
+            height: 32 * scale,
           ),
         ),
       );
@@ -134,7 +126,7 @@ class _SchedulingSectionState extends State<SchedulingSection> {
 
     return Container(
       padding: EdgeInsets.only(bottom: 4),
-      height: 40 * scale,
+      height: 45 * scale,
       width: widget.selectedHour != "0" && widget.selectedMinute != "0"
           ? 70 * scale
           : 60 * scale,

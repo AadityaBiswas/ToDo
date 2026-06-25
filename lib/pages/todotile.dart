@@ -83,6 +83,7 @@ class _ToDoTileState extends State<ToDoTile> {
               taskDate: widget.taskDate,
               taskMonth: widget.taskMonth,
               taskYear: widget.taskYear,
+              isHighPriority: widget.isHighPriority,
             );
           },
         );
@@ -104,6 +105,7 @@ class _ToDoTileState extends State<ToDoTile> {
             'month': widget.taskMonth,
             'year': widget.taskYear,
             'isCompleted': !widget.isCompleted,
+            'isHighPriority': widget.isHighPriority,
           };
           widget.onEditedTask(updatedTask);
           await Posthog().capture(eventName: "Task Completed");
@@ -150,6 +152,7 @@ class _ToDoTileState extends State<ToDoTile> {
                   'month': widget.taskMonth,
                   'year': widget.taskYear,
                   'isCompleted': true,
+                  'isHighPriority': widget.isHighPriority,
                 };
                 widget.onEditedTask(updatedTask);
               } else {
@@ -161,6 +164,7 @@ class _ToDoTileState extends State<ToDoTile> {
                   'month': widget.taskMonth,
                   'year': widget.taskYear,
                   'isCompleted': widget.isCompleted,
+                  'isHighPriority': widget.isHighPriority,
                 };
                 widget.onEditedTask(updatedTask);
               }
@@ -251,19 +255,25 @@ class _ToDoTileState extends State<ToDoTile> {
   }
 
   Widget buildTaskName() {
-    return AnimatedDefaultTextStyle(
-      duration: const Duration(milliseconds: 100),
-      curve: Curves.easeInOut,
-      style: AppTextStyles.taskText.copyWith(
-        color: widget.isTimerActive
-            ? const Color(0xFFF2F2F2)
-            : AppTextStyles.taskText.color,
-      ),
-      child: Text(
-        widget.isTimerActive ? "Start timer" : widget.taskName,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-      ),
+    return Row(
+      children: [
+        SizedBox(child: Icon(Icons.circle, size: 8, color: Colors.red)),
+        SizedBox(width: 6),
+        AnimatedDefaultTextStyle(
+          duration: const Duration(milliseconds: 100),
+          curve: Curves.easeInOut,
+          style: AppTextStyles.taskText.copyWith(
+            color: widget.isTimerActive
+                ? const Color(0xFFF2F2F2)
+                : AppTextStyles.taskText.color,
+          ),
+          child: Text(
+            widget.isTimerActive ? "Start timer" : widget.taskName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 

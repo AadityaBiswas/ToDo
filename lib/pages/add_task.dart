@@ -14,6 +14,7 @@ class AddTask extends StatefulWidget {
   final String taskDate;
   final String taskMonth;
   final String taskYear;
+  final bool isHighPriority;
   const AddTask({
     super.key,
     required this.editTask,
@@ -23,6 +24,7 @@ class AddTask extends StatefulWidget {
     required this.taskDate,
     required this.taskMonth,
     required this.taskYear,
+    this.isHighPriority = false,
   });
 
   @override
@@ -41,6 +43,9 @@ class _AddTaskState extends State<AddTask> {
   late String selectedDate;
   late String selectedMonth;
   late String selectedYear;
+  late bool priority;
+  bool tapOncePriority = false;
+  bool priorityTapped = false;
   @override
   void initState() {
     super.initState();
@@ -58,6 +63,7 @@ class _AddTaskState extends State<AddTask> {
     selectedYear = widget.editTask
         ? widget.taskYear
         : DateTime.now().year.toString();
+    priority = widget.isHighPriority;
   }
 
   @override
@@ -66,6 +72,7 @@ class _AddTaskState extends State<AddTask> {
     final scale = math.min(size.width / 440, size.height / 956);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
+
     return Padding(
       padding: EdgeInsets.only(bottom: keyboardHeight > 0 ? keyboardHeight : 0),
       child: SingleChildScrollView(
@@ -100,28 +107,102 @@ class _AddTaskState extends State<AddTask> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      SchedulingSection(
-                        selectedHour: selectedHour,
-                        selectedMinute: selectedMinute,
-                        timeTapped: timeTapped,
-                        isEditing: widget.editTask,
-                        onTimeToggled: (newValue) {
-                          setState(() {
-                            timeTapped = newValue;
-                          });
-                        },
-                        onTimeSelected: ((hour, minute) {
-                          setState(() {
-                            selectedHour = hour;
-                            selectedMinute = minute;
-                            timeTapped = true;
-                          });
-                        }),
+                      SizedBox(
+                        height: 50 * scale,
+                        width: 200 * scale,
+                        child: Row(
+                          children: [
+                            SchedulingSection(
+                              selectedHour: selectedHour,
+                              selectedMinute: selectedMinute,
+                              timeTapped: timeTapped,
+                              isEditing: widget.editTask,
+                              onTimeToggled: (newValue) {
+                                setState(() {
+                                  timeTapped = newValue;
+                                });
+                              },
+                              onTimeSelected: ((hour, minute) {
+                                setState(() {
+                                  selectedHour = hour;
+                                  selectedMinute = minute;
+                                  timeTapped = true;
+                                });
+                              }),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                setState(() {
+                                  priorityTapped = true;
+                                });
+                                await Duration(milliseconds: 100);
+                                setState(() {
+                                  tapOncePriority = true;
+                                });
+                                await Duration(milliseconds: 100);
+                                setState(() {
+                                  tapOncePriority = false;
+                                });
+                                setState(() {
+                                  priority = !priority;
+                                });
+                              },
+                              child: Container(
+                                margin: EdgeInsets.only(
+                                  top: tapOncePriority ? 4 : 0,
+                                  left: 12,
+                                ),
+                                height: 45 * scale,
+                                width: 45 * scale,
+                                decoration: BoxDecoration(
+                                  color: priority
+                                      ? Color(0xFF333333)
+                                      : Color(0xFFF2F2F2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: priority
+                                          ? Color(0xFF262626)
+                                          : Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    right: BorderSide(
+                                      color: priority
+                                          ? Color(0xFF262626)
+                                          : Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    left: BorderSide(
+                                      color: priority
+                                          ? Color(0xFF262626)
+                                          : Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    bottom: BorderSide(
+                                      color: priority
+                                          ? Color(0xFF262626)
+                                          : Color(0xFFE0E0E0),
+                                      width: tapOncePriority ? 2 : 6,
+                                    ),
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.outlined_flag_rounded,
+                                  color: priority
+                                      ? Colors.red
+                                      : Color(0xFF808080),
+                                  fill: priority ? 1 : 0,
+                                  size: 32 * scale,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
                       SizedBox(
-                        height: 46,
-                        width: 100,
+                        height: 50,
+                        width: 110,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -159,6 +240,7 @@ class _AddTaskState extends State<AddTask> {
             'month': selectedMonth.toString(),
             'year': selectedYear.toString(),
             'isCompleted': false,
+            'isHighPriority': priority,
           });
         } else {
           setState(() {
@@ -173,8 +255,8 @@ class _AddTaskState extends State<AddTask> {
       },
       child: AnimatedContainer(
         duration: Duration(milliseconds: 80),
-        height: 40 * scale,
-        width: 40 * scale,
+        height: 45 * scale,
+        width: 45 * scale,
         decoration: BoxDecoration(
           color: saveIconColorChange ? Colors.red : Color(0xFF1A1A1A),
           borderRadius: BorderRadius.circular(10),
@@ -217,7 +299,7 @@ class _AddTaskState extends State<AddTask> {
     return AnimatedContainer(
       duration: Duration(milliseconds: 80),
       margin: const EdgeInsets.only(bottom: 8),
-      height: 46 * scale,
+      height: 50 * scale,
       width: 416 * scale,
 
       decoration: BoxDecoration(
@@ -237,7 +319,8 @@ class _AddTaskState extends State<AddTask> {
         ),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Center(
+      child: Padding(
+        padding: EdgeInsets.only(top: 2),
         child: TextField(
           maxLength: 30,
           buildCounter:
@@ -261,7 +344,7 @@ class _AddTaskState extends State<AddTask> {
           cursorColor: taskBorderError ? Colors.red : Color(0xFF999999),
           style: TextStyle(
             color: Color(0xFF464545),
-            fontSize: 18,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
           decoration: InputDecoration(
@@ -269,7 +352,7 @@ class _AddTaskState extends State<AddTask> {
                 ? "Enter task name to save"
                 : "What's to be done?",
             hintStyle: TextStyle(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
               color: taskBorderError
                   ? Colors.red.withValues(alpha: 0.5)

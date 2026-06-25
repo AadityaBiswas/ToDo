@@ -427,7 +427,7 @@ class _HomePageState extends State<HomePage> {
             taskMonth: task["month"]?.toString() ?? "0",
             taskYear: task["year"]?.toString() ?? "0",
             isCompleted: task["isCompleted"] ?? false,
-            isHighPriority: false, // Hardcoded to false to enforce normal state
+            isHighPriority: task["isHighPriority"] ?? false,
             isTimerActive:
                 activeTimerIndex ==
                 originalIndex, // Match against original index
