@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:hive/hive.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:todo/pages/date_allocation.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'scheduling_section.dart';
 import 'package:flutter_inset_shadow/flutter_inset_shadow.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'dart:math' as math;
 
 class AddTask extends StatefulWidget {
@@ -151,6 +153,7 @@ class _AddTaskState extends State<AddTask> {
                                 margin: EdgeInsets.only(
                                   top: tapOncePriority ? 4 : 0,
                                   left: 12,
+                                  right: 12,
                                 ),
                                 height: 45 * scale,
                                 width: 45 * scale,
@@ -193,6 +196,59 @@ class _AddTaskState extends State<AddTask> {
                                       : Color(0xFF808080),
                                   fill: priority ? 1 : 0,
                                   size: 32 * scale,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () async {
+                                final result =
+                                    await showModalBottomSheet<
+                                      ({String date, String month, String year})
+                                    >(
+                                      context: context,
+                                      builder: (context) => DateAllocation(
+                                        finalDay: selectedDate,
+                                        finalMonth: selectedMonth,
+                                        finalYear: selectedYear,
+                                      ),
+                                    );
+                                if (result != null) {
+                                  selectedDate = result.date;
+                                  selectedMonth = result.month;
+                                  selectedYear = result.year;
+                                }
+                              },
+                              child: Container(
+                                height: 45 * scale,
+                                width: 45 * scale,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF2F2F2),
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border(
+                                    top: BorderSide(
+                                      color: Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    right: BorderSide(
+                                      color: Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    left: BorderSide(
+                                      color: Color(0xFFE0E0E0),
+                                      width: 2,
+                                    ),
+                                    bottom: BorderSide(
+                                      color: Color(0xFFE0E0E0),
+                                      width: 6,
+                                    ),
+                                  ),
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/icon/calendarLightLight.svg',
+                                    width: 32 * scale,
+                                    height: 32 * scale,
+                                  ),
                                 ),
                               ),
                             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:todo/theme/app_theme.dart';
+import 'dart:math' as math;
+import 'package:flutter_svg/flutter_svg.dart';
 
 class DateAllocation extends StatefulWidget {
   final String finalDay;
@@ -20,331 +22,372 @@ class _DateAllocationState extends State<DateAllocation> {
   late final DateTime today;
   late String fixedMonth;
   late String fixedYear;
-  TextEditingController dayController = TextEditingController();
-  int selectedQuickOption = -1;
-  bool saveDate = false;
   @override
   void initState() {
     super.initState();
     today = DateTime.now();
     fixedMonth = widget.finalMonth;
     fixedYear = widget.finalYear;
-    dayController.text = widget.finalDay;
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 430,
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-      decoration: BoxDecoration(
-        color: const Color(0xFF151518),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        border: Border(
-          top: BorderSide(color: Colors.white.withAlpha(24), width: 1),
-          left: BorderSide(color: Colors.white.withAlpha(24), width: 1),
-        ),
-      ),
-      child: Column(
-        children: [
-          dragHandle(),
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              quickOption(0, Icons.wb_sunny_rounded, "Tommorow"),
-              quickOption(1, Icons.weekend, "This Sunday"),
-            ],
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              quickOption(2, Icons.today_rounded, "Next Monday"),
-              quickOption(3, Icons.update, "Day After"),
-            ],
-          ),
-          dateChanger(),
-          saveDateButton(),
-        ],
-      ),
-    );
-  }
+    final size = MediaQuery.of(context).size;
+    const monthNames = [
+      'January',
+      'February',
+      'March',
+      'April',
+      'May',
+      'June',
+      'July',
+      'August',
+      'September',
+      'October',
+      'November',
+      'December',
+    ];
+    const weekdays = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
 
-  GestureDetector saveDateButton() {
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          saveDate = true;
-        });
-        if (saveDate) {
-          Navigator.pop(context, (
-            day: dayController.text,
-            month: fixedMonth,
-            year: fixedYear,
-          ));
-        }
-      },
-      child: Stack(
-        children: [
-          Container(
-            height: saveDate ? 0 : 70,
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(64),
-            ),
-          ),
-          Container(
-            margin: EdgeInsets.only(top: saveDate ? 12 : 0),
-            height: 64,
-            width: double.maxFinite,
-            decoration: BoxDecoration(
-              color: saveDate ? AppColors.secondaryText : Colors.white,
-              borderRadius: BorderRadius.circular(64),
-            ),
-            child: Center(
-              child: Text(
-                "Save",
-                style: TextStyle(
-                  fontFamily: "HankenGrostek",
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: saveDate ? Colors.white : Colors.black,
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Container dateChanger() {
+    final weekDates = ["30", "31", "1", "2", "3", "4", "5"];
+    final scale = math.min(size.width / 440, size.height / 956);
     return Container(
-      margin: const EdgeInsets.only(top: 16, bottom: 12),
-      height: 80,
+      height: 174 * scale,
+      width: 440 * scale,
+      padding: EdgeInsets.only(
+        top: 8 * scale,
+        right: 12 * scale,
+        left: 12 * scale,
+        bottom: 12 * scale,
+      ),
       decoration: BoxDecoration(
-        color: const Color(0xFF111216).withOpacity(0.2),
+        color: Color(0xFFFFFFFF),
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12),
-          bottomLeft: Radius.circular(12),
+          topRight: Radius.circular(12),
         ),
-        border: const Border(
-          top: BorderSide(color: Colors.black, width: 3),
-          left: BorderSide(color: Colors.black, width: 3),
-          bottom: BorderSide(color: Colors.black, width: 0.5),
-          right: BorderSide(color: Colors.black, width: 0.5),
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 40,
-            child: TextField(
-              textAlign: TextAlign.right,
-              controller: dayController,
-              cursorColor: Colors.white60,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 32,
-                fontWeight: FontWeight.w600,
-              ),
-              decoration: InputDecoration(
-                hintTextDirection: TextDirection.rtl,
-                hintText: today.day.toString(),
-                hintStyle: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.taskText,
-                ),
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-          SizedBox(width: 4),
-          Text(
-            ".",
-            style: TextStyle(color: AppColors.inactiveText, fontSize: 40),
-          ),
-
-          SizedBox(width: 6),
-
-          SizedBox(
-            child: Text(
-              fixedMonth.toString(),
-              style: TextStyle(
-                color: AppColors.inactiveText,
-                fontSize: 32,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          SizedBox(width: 4),
-          Text(
-            ".",
-            style: TextStyle(color: AppColors.inactiveText, fontSize: 40),
-          ),
-          SizedBox(width: 4),
-          Text(
-            fixedYear.toString(),
-            style: TextStyle(
-              color: AppColors.inactiveText,
-              fontSize: 32,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget quickOption(int index, IconData icon, String label) {
-    final bool quickOptionTapped = selectedQuickOption == index;
-    return GestureDetector(
-      onTap: () {
-        quickOptionSet(index);
-      },
-      child: Stack(
-        children: [
-          bottomLayerOption(quickOptionTapped),
-          topLayerOption(quickOptionTapped, index, icon, label),
-        ],
-      ),
-    );
-  }
-
-  void quickOptionSet(int index) {
-    DateTime thisSunday() {
-      int daysTillSunday = DateTime.sunday - today.weekday;
-      if (daysTillSunday < 0) {
-        return today.add((Duration(days: daysTillSunday + 7)));
-      }
-      return today.add(Duration(days: daysTillSunday));
-    }
-
-    DateTime nextMonday() {
-      int daysTillMonday = DateTime.monday - today.weekday;
-      if (daysTillMonday <= 0) {
-        daysTillMonday += 7;
-      }
-      return today.add(Duration(days: daysTillMonday));
-    }
-
-    final DateTime targetDate;
-    if (index == 0) {
-      targetDate = today.add(const Duration(days: 1));
-    } else if (index == 1) {
-      targetDate = thisSunday();
-    } else if (index == 2) {
-      targetDate = nextMonday();
-    } else {
-      targetDate = today.add(const Duration(days: 2));
-    }
-    setState(() {
-      if (selectedQuickOption == index) {
-        selectedQuickOption = -1;
-        dayController.text = today.day.toString();
-      } else {
-        selectedQuickOption = index;
-        dayController.text = targetDate.day.toString();
-        fixedMonth = targetDate.month.toString();
-        fixedYear = targetDate.year.toString();
-      }
-    });
-  }
-
-  Widget bottomLayerOption(bool quickOptionTapped) {
-    return Container(
-      width: 178,
-      height: quickOptionTapped ? 0 : 87,
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(255, 53, 54, 59),
-        borderRadius: BorderRadius.circular(12),
-      ),
-    );
-  }
-
-  Widget topLayerOption(
-    bool quickOptionTapped,
-    int index,
-    IconData icon,
-    String label,
-  ) {
-    return Container(
-      margin: EdgeInsets.only(top: quickOptionTapped ? 5 : 0),
-      padding: const EdgeInsets.only(top: 16, bottom: 16),
-      width: 178,
-      height: 82,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: quickOptionTapped
-            ? tappedBorderOption()
-            : defaultBorderOption(),
-        color: quickOptionTapped
-            ? const Color(0xFF111216).withOpacity(0.2)
-            : Color(0xFF202125),
       ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 24,
-            color: quickOptionTapped
-                ? AppColors.taskText
-                : AppColors.secondaryText,
-          ),
-          const SizedBox(height: 4),
-          SizedBox(
-            width: double.infinity,
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              softWrap: false,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: quickOptionTapped
-                    ? AppColors.taskText
-                    : AppColors.secondaryText,
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                margin: EdgeInsets.only(bottom: 12 * scale),
+                child: Row(
+                  children: [
+                    Text(
+                      monthNames[today.month - 1],
+                      style: TextStyle(
+                        fontFamily: 'Hanken_Grotesk',
+                        fontSize: 20 * scale,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    SvgPicture.asset(
+                      'assets/icon/collapseIconDown.svg',
+                      width: 24 * scale,
+                      height: 24 * scale,
+                    ),
+                  ],
+                ),
               ),
-            ),
+              Container(
+                margin: EdgeInsets.only(bottom: 10 * scale),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28 * scale,
+                      height: 28 * scale,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          right: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          left: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: SvgPicture.asset(
+                          'assets/icon/rightArrow.svg',
+                          width: 5 * scale,
+                          height: 10 * scale,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 8 * scale),
+                    Container(
+                      width: 28 * scale,
+                      height: 28 * scale,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          right: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          left: BorderSide(color: Color(0xFFE0E0E0), width: 1),
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 3,
+                          ),
+                        ),
+                      ),
+                      child: Center(
+                        child: SvgPicture.asset(
+                          'assets/icon/leftArrow.svg',
+                          width: 5 * scale,
+                          height: 10 * scale,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: List.generate(weekDates.length, (index) {
+              return Expanded(
+                child: calendarDay(
+                  weekday: weekdays[index],
+                  day: weekDates[index],
+                  isSelected: false,
+                  isToday: index == 2,
+                  dateOfPreviousMonth: index < 2,
+                  scale: scale,
+                ),
+              );
+            }),
+          ),
+
+          SizedBox(height: 4 * scale),
+
+          Divider(
+            color: Color(0xFFCFCFCF).withValues(alpha: 0.30),
+            thickness: 1.5 * scale,
+          ),
+
+          SizedBox(height: 2 * scale),
+
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(6 * scale),
+                      width: 72 * scale,
+                      height: 36 * scale,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 6,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/todayCalendarUnselected.svg',
+                            width: 20 * scale,
+                            height: 20 * scale,
+                          ),
+                          Text(
+                            "Today",
+                            style: TextStyle(
+                              fontFamily: "Hanken_Grotesk",
+                              fontSize: 12 * scale,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF808080),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    SizedBox(width: 8 * scale),
+
+                    Container(
+                      padding: EdgeInsets.all(5 * scale),
+                      width: 100 * scale,
+                      height: 36 * scale,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 6,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/tommorowCalendarUnselected.svg',
+                            width: 20 * scale,
+                            height: 20 * scale,
+                          ),
+                          Text(
+                            "Tommorow",
+                            style: TextStyle(
+                              fontFamily: "Hanken_Grotesk",
+                              fontSize: 12 * scale,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF808080),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                    SizedBox(width: 8 * scale),
+
+                    Container(
+                      padding: EdgeInsets.all(5 * scale),
+                      width: 100 * scale,
+                      height: 36 * scale,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF2F2F2),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border(
+                          top: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          right: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          left: BorderSide(color: Color(0xFFE0E0E0), width: 2),
+                          bottom: BorderSide(
+                            color: Color(0xFFE0E0E0),
+                            width: 6,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SvgPicture.asset(
+                            'assets/icon/nextWeekCalendarUnselected.svg',
+                            width: 20 * scale,
+                            height: 20 * scale,
+                          ),
+                          Text(
+                            "Next week",
+                            style: TextStyle(
+                              fontFamily: "Hanken_Grotesk",
+                              fontSize: 12 * scale,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF808080),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              Container(
+                padding: EdgeInsets.all(5 * scale),
+                width: 100 * scale,
+                height: 36 * scale,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF333333),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border(
+                    top: BorderSide(color: Color(0xFF242424), width: 2),
+                    right: BorderSide(color: Color(0xFF242424), width: 2),
+                    left: BorderSide(color: Color(0xFF242424), width: 2),
+                    bottom: BorderSide(color: Color(0xFF242424), width: 6),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Add date",
+                    style: TextStyle(
+                      fontFamily: "Hanken_Grotesk",
+                      fontSize: 14 * scale,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFFF2F2F2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Border tappedBorderOption() {
-    return const Border(
-      top: BorderSide(color: Colors.black, width: 3),
-      left: BorderSide(color: Colors.black, width: 3),
-      bottom: BorderSide(color: Colors.black, width: 0.5),
-      right: BorderSide(color: Colors.black, width: 0.5),
-    );
-  }
-
-  Border defaultBorderOption() {
-    return Border(
-      top: BorderSide(color: Colors.white.withAlpha(20), width: 0.7),
-      left: BorderSide(color: Colors.white.withAlpha(20), width: 0.7),
-    );
-  }
-
-  Widget dragHandle() {
-    return Container(
-      width: 48,
-      height: 5,
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(80),
-        borderRadius: BorderRadius.circular(100),
-      ),
+  Widget calendarDay({
+    required String weekday,
+    required String day,
+    required bool isSelected,
+    required bool isToday,
+    required double scale,
+    bool dateOfPreviousMonth = false,
+  }) {
+    return Column(
+      children: [
+        Text(
+          weekday,
+          style: TextStyle(
+            fontFamily: "Hanken_Grotesk",
+            fontSize: 15 * scale,
+            color: Color(0xFF6F7C8E),
+            fontWeight: FontWeight.normal,
+          ),
+        ),
+        SizedBox(height: 8),
+        Container(
+          width: 30 * scale,
+          height: 20 * scale,
+          decoration: BoxDecoration(
+            color: isSelected ? Color(0xFF595959) : Colors.transparent,
+            borderRadius: BorderRadius.circular(4),
+            border: isSelected
+                ? Border(
+                    top: BorderSide(color: Color(0xFF404040), width: 1),
+                    right: BorderSide(color: Color(0xFF404040), width: 1),
+                    left: BorderSide(color: Color(0xFF404040), width: 1),
+                    bottom: BorderSide(color: Color(0xFF404040), width: 3),
+                  )
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              day.toString(),
+              style: TextStyle(
+                fontFamily: "Hanken_Grotesk",
+                fontSize: 18 * scale,
+                fontWeight: FontWeight.w600,
+                color: dateOfPreviousMonth
+                    ? Color(0xFF6F7C8E)
+                    : isToday
+                    ? Colors.red
+                    : Color(0xFF0D0D0D),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
