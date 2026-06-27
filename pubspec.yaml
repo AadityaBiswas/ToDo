@@ -45,6 +45,7 @@ dependencies:
   firebase_core: ^4.10.0
   flutter_svg: ^2.3.0
   table_calendar: ^3.2.0
+  dotted_border: ^3.1.0
 
 dev_dependencies:
   flutter_test:
@@ -91,6 +92,9 @@ flutter:
     - assets/icon/todayCalendarUnselected.svg
     - assets/icon/tommorowCalendarUnselected.svg
     - assets/icon/nextWeekCalendarUnselected.svg
+    - assets/icon/todayCalendarSelected.svg
+    - assets/icon/tommorowCalendarSelected.svg
+    - assets/icon/nextWeekCalendarSelected.svg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see
