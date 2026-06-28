@@ -95,6 +95,7 @@ flutter:
     - assets/icon/todayCalendarSelected.svg
     - assets/icon/tommorowCalendarSelected.svg
     - assets/icon/nextWeekCalendarSelected.svg
+    - assets/icon/selectedDate.svg
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

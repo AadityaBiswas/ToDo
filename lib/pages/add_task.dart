@@ -34,12 +34,14 @@ class AddTask extends StatefulWidget {
 }
 
 class _AddTaskState extends State<AddTask> {
+  DateTime dateTimeSelectedDate = DateTime.now();
   late TextEditingController _taskName;
   bool saveIconColorChange = false;
   bool taskBorderError = false;
   bool saveClicked = false;
   bool dateTapped = true;
   bool timeTapped = false;
+  bool dateSelected = false;
   late String selectedHour;
   late String selectedMinute;
   late String selectedDate;
@@ -110,8 +112,6 @@ class _AddTaskState extends State<AddTask> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        height: 50 * scale,
-                        width: 200 * scale,
                         child: Row(
                           children: [
                             SchedulingSection(
@@ -203,52 +203,133 @@ class _AddTaskState extends State<AddTask> {
                               onTap: () async {
                                 final result =
                                     await showModalBottomSheet<
-                                      ({String date, String month, String year})
+                                      ({
+                                        String date,
+                                        String month,
+                                        String year,
+                                        bool isSelected,
+                                        DateTime selectedDateFromChild,
+                                      })
                                     >(
                                       context: context,
-                                      builder: (context) => DateAllocation(
-                                        finalDay: selectedDate,
-                                        finalMonth: selectedMonth,
-                                        finalYear: selectedYear,
+                                      isScrollControlled: true,
+                                      builder: (context) => Padding(
+                                        padding: EdgeInsets.only(
+                                          bottom: MediaQuery.of(
+                                            context,
+                                          ).viewInsets.bottom,
+                                        ),
+                                        child: Wrap(
+                                          children: [
+                                            DateAllocation(
+                                              selectedDateFromParent:
+                                                  dateTimeSelectedDate,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     );
                                 if (result != null) {
                                   selectedDate = result.date;
                                   selectedMonth = result.month;
                                   selectedYear = result.year;
+                                  setState(() {
+                                    dateSelected = result.isSelected;
+                                  });
+                                  dateTimeSelectedDate =
+                                      result.selectedDateFromChild;
                                 }
                               },
                               child: Container(
                                 height: 45 * scale,
-                                width: 45 * scale,
+                                width: dateSelected ? 102 * scale : 95 * scale,
+                                padding: EdgeInsets.all(2),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF2F2F2),
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border(
                                     top: BorderSide(
-                                      color: Color(0xFFE0E0E0),
+                                      color: dateSelected
+                                          ? Color(0xFFC0C0C0)
+                                          : Color(0xFFE0E0E0),
                                       width: 2,
                                     ),
                                     right: BorderSide(
-                                      color: Color(0xFFE0E0E0),
+                                      color: dateSelected
+                                          ? Color(0xFFC0C0C0)
+                                          : Color(0xFFE0E0E0),
                                       width: 2,
                                     ),
                                     left: BorderSide(
-                                      color: Color(0xFFE0E0E0),
+                                      color: dateSelected
+                                          ? Color(0xFFC0C0C0)
+                                          : Color(0xFFE0E0E0),
                                       width: 2,
                                     ),
                                     bottom: BorderSide(
-                                      color: Color(0xFFE0E0E0),
+                                      color: dateSelected
+                                          ? Color(0xFFC0C0C0)
+                                          : Color(0xFFE0E0E0),
                                       width: 6,
                                     ),
                                   ),
                                 ),
-                                child: Center(
-                                  child: SvgPicture.asset(
-                                    'assets/icon/calendarLightLight.svg',
-                                    width: 32 * scale,
-                                    height: 32 * scale,
-                                  ),
+                                child: Row(
+                                  children: [
+                                    SizedBox(width: 2),
+                                    dateSelected
+                                        ? SvgPicture.asset(
+                                            'assets/icon/selectedDate.svg',
+                                            width: 32 * scale,
+                                            height: 32 * scale,
+                                          )
+                                        : SvgPicture.asset(
+                                            'assets/icon/calendarLightLight.svg',
+                                            width: 32 * scale,
+                                            height: 32 * scale,
+                                          ),
+                                    SizedBox(width: 4),
+
+                                    dateSelected
+                                        ? SizedBox(
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  selectedMonth,
+                                                  style: TextStyle(
+                                                    color: Color(0xFF333333),
+                                                    fontSize: 16 * scale,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontFamily:
+                                                        "Hanken_Grotesk",
+                                                  ),
+                                                ),
+                                                SizedBox(width: 4),
+                                                Text(
+                                                  selectedDate,
+                                                  style: TextStyle(
+                                                    color: Color(0xFF333333),
+                                                    fontSize: 16 * scale,
+                                                    fontWeight: FontWeight.w800,
+                                                    fontFamily:
+                                                        "Hanken_Grotesk",
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : SizedBox(
+                                            child: Text(
+                                              "Today",
+                                              style: TextStyle(
+                                                color: Color(0xFF808080),
+                                                fontSize: 16 * scale,
+                                                fontWeight: FontWeight.w800,
+                                                fontFamily: "Hanken_Grotesk",
+                                              ),
+                                            ),
+                                          ),
+                                  ],
                                 ),
                               ),
                             ),
