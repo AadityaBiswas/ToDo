@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart' hide BoxShadow, BoxDecoration;
 import 'package:hive/hive.dart';
 import 'package:posthog_flutter/posthog_flutter.dart';
+import 'package:todo/pages/add_habit.dart';
 import 'package:todo/pages/date_allocation.dart';
 import 'package:todo/theme/app_theme.dart';
 import 'scheduling_section.dart';
@@ -34,6 +35,9 @@ class AddTask extends StatefulWidget {
 }
 
 class _AddTaskState extends State<AddTask> {
+  List<bool> showHabitDays = List.filled(7, false);
+  bool tapOnceHabit = false;
+  bool repeatSelected = false;
   DateTime dateTimeSelectedDate = DateTime.now();
   late TextEditingController _taskName;
   bool saveIconColorChange = false;
@@ -132,207 +136,9 @@ class _AddTaskState extends State<AddTask> {
                                 });
                               }),
                             ),
-                            GestureDetector(
-                              onTap: () async {
-                                setState(() {
-                                  priorityTapped = true;
-                                });
-                                await Duration(milliseconds: 100);
-                                setState(() {
-                                  tapOncePriority = true;
-                                });
-                                await Duration(milliseconds: 100);
-                                setState(() {
-                                  tapOncePriority = false;
-                                });
-                                setState(() {
-                                  priority = !priority;
-                                });
-                              },
-                              child: Container(
-                                margin: EdgeInsets.only(
-                                  top: tapOncePriority ? 4 : 0,
-                                  left: 12,
-                                  right: 12,
-                                ),
-                                height: 45 * scale,
-                                width: 45 * scale,
-                                decoration: BoxDecoration(
-                                  color: priority
-                                      ? Color(0xFF333333)
-                                      : Color(0xFFF2F2F2),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: priority
-                                          ? Color(0xFF262626)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    right: BorderSide(
-                                      color: priority
-                                          ? Color(0xFF262626)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    left: BorderSide(
-                                      color: priority
-                                          ? Color(0xFF262626)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    bottom: BorderSide(
-                                      color: priority
-                                          ? Color(0xFF262626)
-                                          : Color(0xFFE0E0E0),
-                                      width: tapOncePriority ? 2 : 6,
-                                    ),
-                                  ),
-                                ),
-                                child: Icon(
-                                  Icons.outlined_flag_rounded,
-                                  color: priority
-                                      ? Colors.red
-                                      : Color(0xFF808080),
-                                  fill: priority ? 1 : 0,
-                                  size: 32 * scale,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () async {
-                                final result =
-                                    await showModalBottomSheet<
-                                      ({
-                                        String date,
-                                        String month,
-                                        String year,
-                                        bool isSelected,
-                                        DateTime selectedDateFromChild,
-                                      })
-                                    >(
-                                      context: context,
-                                      isScrollControlled: true,
-                                      builder: (context) => Padding(
-                                        padding: EdgeInsets.only(
-                                          bottom: MediaQuery.of(
-                                            context,
-                                          ).viewInsets.bottom,
-                                        ),
-                                        child: Wrap(
-                                          children: [
-                                            DateAllocation(
-                                              selectedDateFromParent:
-                                                  dateTimeSelectedDate,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    );
-                                if (result != null) {
-                                  selectedDate = result.date;
-                                  selectedMonth = result.month;
-                                  selectedYear = result.year;
-                                  setState(() {
-                                    dateSelected = result.isSelected;
-                                  });
-                                  dateTimeSelectedDate =
-                                      result.selectedDateFromChild;
-                                }
-                              },
-                              child: Container(
-                                height: 45 * scale,
-                                width: dateSelected ? 102 * scale : 95 * scale,
-                                padding: EdgeInsets.all(2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF2F2F2),
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border(
-                                    top: BorderSide(
-                                      color: dateSelected
-                                          ? Color(0xFFC0C0C0)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    right: BorderSide(
-                                      color: dateSelected
-                                          ? Color(0xFFC0C0C0)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    left: BorderSide(
-                                      color: dateSelected
-                                          ? Color(0xFFC0C0C0)
-                                          : Color(0xFFE0E0E0),
-                                      width: 2,
-                                    ),
-                                    bottom: BorderSide(
-                                      color: dateSelected
-                                          ? Color(0xFFC0C0C0)
-                                          : Color(0xFFE0E0E0),
-                                      width: 6,
-                                    ),
-                                  ),
-                                ),
-                                child: Row(
-                                  children: [
-                                    SizedBox(width: 2),
-                                    dateSelected
-                                        ? SvgPicture.asset(
-                                            'assets/icon/selectedDate.svg',
-                                            width: 32 * scale,
-                                            height: 32 * scale,
-                                          )
-                                        : SvgPicture.asset(
-                                            'assets/icon/calendarLightLight.svg',
-                                            width: 32 * scale,
-                                            height: 32 * scale,
-                                          ),
-                                    SizedBox(width: 4),
-
-                                    dateSelected
-                                        ? SizedBox(
-                                            child: Row(
-                                              children: [
-                                                Text(
-                                                  selectedMonth,
-                                                  style: TextStyle(
-                                                    color: Color(0xFF333333),
-                                                    fontSize: 16 * scale,
-                                                    fontWeight: FontWeight.w800,
-                                                    fontFamily:
-                                                        "Hanken_Grotesk",
-                                                  ),
-                                                ),
-                                                SizedBox(width: 4),
-                                                Text(
-                                                  selectedDate,
-                                                  style: TextStyle(
-                                                    color: Color(0xFF333333),
-                                                    fontSize: 16 * scale,
-                                                    fontWeight: FontWeight.w800,
-                                                    fontFamily:
-                                                        "Hanken_Grotesk",
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          )
-                                        : SizedBox(
-                                            child: Text(
-                                              "Today",
-                                              style: TextStyle(
-                                                color: Color(0xFF808080),
-                                                fontSize: 16 * scale,
-                                                fontWeight: FontWeight.w800,
-                                                fontFamily: "Hanken_Grotesk",
-                                              ),
-                                            ),
-                                          ),
-                                  ],
-                                ),
-                              ),
-                            ),
+                            priorityButton(scale),
+                            dateSelectionButton(context, scale),
+                            HabitButton(context, scale),
                           ],
                         ),
                       ),
@@ -354,6 +160,277 @@ class _AddTaskState extends State<AddTask> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  GestureDetector HabitButton(BuildContext context, double scale) {
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          tapOnceHabit = true;
+        });
+        await Future.delayed(Duration(milliseconds: 80));
+        final result = await showModalBottomSheet<Map<String, dynamic>>(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => Padding(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: AddHabit(
+              habitName: _taskName.text.trim(),
+              showHabitDays: showHabitDays,
+            ),
+          ),
+        );
+        setState(() {
+          if (result != null) {
+            repeatSelected = result["habitCreated"];
+            _taskName.text = result["name"];
+            showHabitDays = result["datesToShow"];
+          }
+        });
+        await Future.delayed(Duration(milliseconds: 200));
+        setState(() {
+          tapOnceHabit = false;
+        });
+      },
+      child: Transform.translate(
+        offset: Offset(0, tapOnceHabit ? 4 : 0),
+        child: Container(
+          margin: EdgeInsets.only(left: 8),
+          width: 84 * scale,
+          height: 45 * scale,
+          decoration: BoxDecoration(
+            color: const Color(0xFFF2F2F2),
+            borderRadius: BorderRadius.circular(8),
+            border: Border(
+              top: BorderSide(
+                color: repeatSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+                width: 2,
+              ),
+              right: BorderSide(
+                color: repeatSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+                width: 2,
+              ),
+              left: BorderSide(
+                color: repeatSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+                width: 2,
+              ),
+              bottom: BorderSide(
+                color: repeatSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+                width: tapOnceHabit ? 2 : 6,
+              ),
+            ),
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: 2),
+              repeatSelected
+                  ? SvgPicture.asset(
+                      'assets/icon/repeatSelected.svg',
+                      width: 30 * scale,
+                      height: 30 * scale,
+                    )
+                  : SvgPicture.asset(
+                      'assets/icon/repeatUnselected.svg',
+                      width: 30 * scale,
+                      height: 30 * scale,
+                    ),
+              Text(
+                "Habit",
+                style: TextStyle(
+                  color: repeatSelected ? Color(0xFF333333) : Color(0xFF808080),
+                  fontSize: 16 * scale,
+                  fontWeight: FontWeight.w800,
+                  fontFamily: "Hanken_Grotesk",
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  GestureDetector dateSelectionButton(BuildContext context, double scale) {
+    return GestureDetector(
+      onTap: () async {
+        final result =
+            await showModalBottomSheet<
+              ({
+                String date,
+                String month,
+                String year,
+                bool isSelected,
+                DateTime selectedDateFromChild,
+              })
+            >(
+              context: context,
+              isScrollControlled: true,
+              builder: (context) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).viewInsets.bottom,
+                ),
+                child: Wrap(
+                  children: [
+                    DateAllocation(
+                      selectedDateFromParent: dateTimeSelectedDate,
+                    ),
+                  ],
+                ),
+              ),
+            );
+        if (result != null) {
+          selectedDate = result.date;
+          selectedMonth = result.month;
+          selectedYear = result.year;
+          setState(() {
+            dateSelected = result.isSelected;
+          });
+          dateTimeSelectedDate = result.selectedDateFromChild;
+        }
+      },
+      child: Container(
+        height: 45 * scale,
+        width: dateSelected ? 102 * scale : 95 * scale,
+        padding: EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF2F2F2),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            top: BorderSide(
+              color: dateSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            right: BorderSide(
+              color: dateSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            left: BorderSide(
+              color: dateSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            bottom: BorderSide(
+              color: dateSelected ? Color(0xFFC0C0C0) : Color(0xFFE0E0E0),
+              width: 6,
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            SizedBox(width: 2),
+            dateSelected
+                ? SvgPicture.asset(
+                    'assets/icon/selectedDate.svg',
+                    width: 32 * scale,
+                    height: 32 * scale,
+                  )
+                : SvgPicture.asset(
+                    'assets/icon/calendarLightLight.svg',
+                    width: 32 * scale,
+                    height: 32 * scale,
+                  ),
+            SizedBox(width: dateSelected ? 6 : 2),
+
+            dateSelected
+                ? SizedBox(
+                    child: Row(
+                      children: [
+                        Text(
+                          selectedMonth,
+                          style: TextStyle(
+                            color: Color(0xFF333333),
+                            fontSize: 16 * scale,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: "Hanken_Grotesk",
+                          ),
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          selectedDate,
+                          style: TextStyle(
+                            color: Color(0xFF333333),
+                            fontSize: 16 * scale,
+                            fontWeight: FontWeight.w800,
+                            fontFamily: "Hanken_Grotesk",
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : SizedBox(
+                    child: Text(
+                      "Today",
+                      style: TextStyle(
+                        color: Color(0xFF808080),
+                        fontSize: 16 * scale,
+                        fontWeight: FontWeight.w800,
+                        fontFamily: "Hanken_Grotesk",
+                      ),
+                    ),
+                  ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  GestureDetector priorityButton(double scale) {
+    return GestureDetector(
+      onTap: () async {
+        setState(() {
+          priorityTapped = true;
+        });
+        await Duration(milliseconds: 100);
+        setState(() {
+          tapOncePriority = true;
+        });
+        await Duration(milliseconds: 100);
+        setState(() {
+          tapOncePriority = false;
+        });
+        setState(() {
+          priority = !priority;
+        });
+      },
+      child: Container(
+        margin: EdgeInsets.only(
+          top: tapOncePriority ? 4 : 0,
+          left: 8,
+          right: 8,
+        ),
+        height: 45 * scale,
+        width: 45 * scale,
+        decoration: BoxDecoration(
+          color: priority ? Color(0xFF333333) : Color(0xFFF2F2F2),
+          borderRadius: BorderRadius.circular(8),
+          border: Border(
+            top: BorderSide(
+              color: priority ? Color(0xFF262626) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            right: BorderSide(
+              color: priority ? Color(0xFF262626) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            left: BorderSide(
+              color: priority ? Color(0xFF262626) : Color(0xFFE0E0E0),
+              width: 2,
+            ),
+            bottom: BorderSide(
+              color: priority ? Color(0xFF262626) : Color(0xFFE0E0E0),
+              width: tapOncePriority ? 2 : 6,
+            ),
+          ),
+        ),
+        child: Icon(
+          Icons.outlined_flag_rounded,
+          color: priority ? Colors.red : Color(0xFF808080),
+          fill: priority ? 1 : 0,
+          size: 32 * scale,
         ),
       ),
     );
