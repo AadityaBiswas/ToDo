@@ -189,7 +189,6 @@ class _HomePageState extends State<HomePage> {
                               await Future.delayed(
                                 const Duration(milliseconds: 80),
                               );
-
                               if (value != null) {
                                 setState(() {
                                   tasks.add(Map<String, dynamic>.from(value));
@@ -386,82 +385,150 @@ class _HomePageState extends State<HomePage> {
   }
 
   ListView taskList(double scale) {
-    // 1. Get current date
     final DateTime now = DateTime.now();
 
-    // 2. Filter tasks for today, saving their ORIGINAL index in the master list
-    List<MapEntry<int, Map<String, dynamic>>> todaysTasks = [];
+    // CHANGED: Replaced 'todaysTasks' with two distinct lists for separation
+    List<MapEntry<int, Map<String, dynamic>>> todaysHabits = [];
+    List<MapEntry<int, Map<String, dynamic>>> todaysNormalTasks = [];
+
     for (int i = 0; i < tasks.length; i++) {
       final task = tasks[i];
-
-      // Safely parse date components (handles both String and Int storage)
       final int tDate = int.tryParse(task["date"]?.toString() ?? "0") ?? 0;
       final int tMonth = int.tryParse(task["month"]?.toString() ?? "0") ?? 0;
       final int tYear = int.tryParse(task["year"]?.toString() ?? "0") ?? 0;
 
-      // Check if the task matches today's date
-      if (tDate == now.day && tMonth == now.month && tYear == now.year) {
-        todaysTasks.add(MapEntry(i, task));
+      final bool isHabit = task["isHabit"] ?? false;
+      final List<dynamic> habitDaysRaw =
+          task["habitDays"] ?? List.filled(7, false);
+      final List<bool> habitDays = habitDaysRaw.map((e) => e == true).toList();
+
+      if (isHabit) {
+        int currentDayIndex = now.weekday - 1;
+        if (habitDays.length == 7 && habitDays[currentDayIndex]) {
+          // CHANGED: Route habits specifically to the habits list
+          todaysHabits.add(MapEntry(i, task));
+        }
+      } else {
+        if (tDate == now.day && tMonth == now.month && tYear == now.year) {
+          // CHANGED: Route standard tasks to the normal tasks list
+          todaysNormalTasks.add(MapEntry(i, task));
+        }
       }
     }
 
-    return ListView.builder(
-      itemCount: todaysTasks.length, // Only build for today's tasks
+    // NEW: Extracted the ToDoTile building logic into a helper function so it can be used for both lists
+    Widget buildTile(
+      MapEntry<int, Map<String, dynamic>> entry,
+      bool isHabitUI,
+    ) {
+      final int originalIndex = entry.key;
+      final Map<String, dynamic> task = entry.value;
+      final List<dynamic> habitDaysRaw =
+          task["habitDays"] ?? List.filled(7, false);
+      final List<bool> currentHabitDays = habitDaysRaw
+          .map((e) => e == true)
+          .toList();
+      return Container(
+        margin: EdgeInsets.only(bottom: 10 * scale),
+        child: ToDoTile(
+          taskName: task["name"]?.toString() ?? "0",
+          taskHour: task["hour"]?.toString() ?? "0",
+          taskMinute: task["minute"]?.toString() ?? "0",
+          taskDate: task["date"]?.toString() ?? "0",
+          taskMonth: task["month"]?.toString() ?? "0",
+          taskYear: task["year"]?.toString() ?? "0",
+          isCompleted: task["isCompleted"] ?? false,
+          isHighPriority: task["isHighPriority"] ?? false,
+
+          // NEW: Pass the boolean down so the Tile knows how to style itself
+          isHabit: isHabitUI,
+          habitDays: currentHabitDays,
+          isTimerActive: activeTimerIndex == originalIndex,
+          onTimerTap: () {
+            setState(() {
+              fabTapped = false;
+              if (activeTimerIndex == originalIndex) {
+                activeTimerIndex = null;
+              } else {
+                activeTimerIndex = originalIndex;
+              }
+            });
+          },
+          onEditedTask: (updatedTask) {
+            setState(() {
+              fabTapped = false;
+              if (updatedTask['delete'] == true) {
+                tasks.removeAt(originalIndex);
+                if (activeTimerIndex == originalIndex) {
+                  activeTimerIndex = null;
+                }
+                _saveTasks();
+              } else {
+                tasks[originalIndex] = updatedTask;
+                _saveTasks();
+              }
+            });
+          },
+        ),
+      );
+    }
+
+    // CHANGED: Replaced ListView.builder with a standard ListView to accommodate headers and sections
+    return ListView(
       padding: EdgeInsets.only(
         top: 100 * scale,
         left: 20 * scale,
         right: 20 * scale,
+        bottom:
+            120 *
+            scale, // Added bottom padding so the FAB/menu doesn't cover the bottom items
       ),
-      itemBuilder: (context, index) {
-        // 3. Extract the original master index and the task data
-        final int originalIndex = todaysTasks[index].key;
-        final Map<String, dynamic> task = todaysTasks[index].value;
+      children: [
+        if (todaysHabits.isNotEmpty) ...[
+          ...List.generate((todaysHabits.length / 2).ceil(), (index) {
+            int firstIndex = index * 2;
+            int secondIndex = firstIndex + 1;
 
-        return Container(
-          margin: EdgeInsets.only(top: index == 0 ? 0 : 10 * scale),
-          child: ToDoTile(
-            taskName: task["name"]?.toString() ?? "0",
-            taskHour: task["hour"]?.toString() ?? "0",
-            taskMinute: task["minute"]?.toString() ?? "0",
-            taskDate: task["date"]?.toString() ?? "0",
-            taskMonth: task["month"]?.toString() ?? "0",
-            taskYear: task["year"]?.toString() ?? "0",
-            isCompleted: task["isCompleted"] ?? false,
-            isHighPriority: task["isHighPriority"] ?? false,
-            isTimerActive:
-                activeTimerIndex ==
-                originalIndex, // Match against original index
-            onTimerTap: () {
-              setState(() {
-                fabTapped = false;
-                if (activeTimerIndex == originalIndex) {
-                  activeTimerIndex = null;
-                } else {
-                  activeTimerIndex = originalIndex;
-                }
-              });
-            },
-            onEditedTask: (updatedTask) {
-              setState(() {
-                fabTapped = false;
-                if (updatedTask['delete'] == true) {
-                  // Delete from the master list using the original index
-                  tasks.removeAt(originalIndex);
-                  if (activeTimerIndex == originalIndex) {
-                    activeTimerIndex =
-                        null; // Clear timer if the active task is deleted
-                  }
-                  _saveTasks();
-                } else {
-                  // Update the master list using the original index
-                  tasks[originalIndex] = updatedTask;
-                  _saveTasks();
-                }
-              });
-            },
+            return Padding(
+              padding: EdgeInsets.only(bottom: 10 * scale),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: buildTile(todaysHabits[firstIndex], true)),
+                  SizedBox(width: 12 * scale),
+                  Expanded(
+                    child: secondIndex < todaysHabits.length
+                        ? buildTile(todaysHabits[secondIndex], true)
+                        : SizedBox(),
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          SizedBox(height: 4 * scale),
+        ],
+
+        if (todaysNormalTasks.isNotEmpty) ...[
+          ...todaysNormalTasks.map((entry) => buildTile(entry, false)),
+        ],
+
+        if (todaysHabits.isEmpty && todaysNormalTasks.isEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: 40 * scale),
+            child: Center(
+              child: Text(
+                "Nothing scheduled for today",
+                style: TextStyle(
+                  color: Color(0xFF999999),
+                  fontSize: 16 * scale,
+                  fontFamily: "Hanken_Grotesk",
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
           ),
-        );
-      },
+      ],
     );
   }
 }

@@ -18,6 +18,8 @@ class AddTask extends StatefulWidget {
   final String taskMonth;
   final String taskYear;
   final bool isHighPriority;
+  final bool isHabit; // Add this
+  final List<bool> habitDays;
   const AddTask({
     super.key,
     required this.editTask,
@@ -28,16 +30,25 @@ class AddTask extends StatefulWidget {
     required this.taskMonth,
     required this.taskYear,
     this.isHighPriority = false,
+    this.isHabit = false, // Add this
+    this.habitDays = const [],
   });
 
   @override
   State<AddTask> createState() => _AddTaskState();
 }
 
-class _AddTaskState extends State<AddTask> {
-  List<bool> showHabitDays = List.filled(7, false);
+class _AddTaskState extends State<AddTask> with TickerProviderStateMixin {
+  late bool isHabit;
+  late List<bool> habitDays;
+  late AnimationController _textShakeController;
+  late Animation<double> _textShakeAnimation;
+  late AnimationController _repeatShakeController;
+  late Animation<double> _repeatShakeAnimation;
+  final FocusNode _keyboardFocus = FocusNode();
+  late List<bool> showHabitDays;
   bool tapOnceHabit = false;
-  bool repeatSelected = false;
+  late bool repeatSelected;
   DateTime dateTimeSelectedDate = DateTime.now();
   late TextEditingController _taskName;
   bool saveIconColorChange = false;
@@ -57,6 +68,26 @@ class _AddTaskState extends State<AddTask> {
   @override
   void initState() {
     super.initState();
+    repeatSelected = widget.isHabit;
+    showHabitDays = widget.habitDays.isNotEmpty
+        ? List.from(widget.habitDays)
+        : List.filled(7, false);
+    isHabit = widget.isHabit; // Initialize from widget
+    habitDays = widget.habitDays;
+    _textShakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _textShakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _textShakeController, curve: Curves.linear),
+    );
+    _repeatShakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _repeatShakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _repeatShakeController, curve: Curves.linear),
+    );
     _taskName = widget.taskName == "0"
         ? TextEditingController()
         : TextEditingController(text: widget.taskName);
@@ -75,91 +106,129 @@ class _AddTaskState extends State<AddTask> {
   }
 
   @override
+  void dispose() {
+    _keyboardFocus.dispose();
+    _taskName.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     final scale = math.min(size.width / 440, size.height / 956);
     final screenWidth = MediaQuery.sizeOf(context).width;
     final keyboardHeight = MediaQuery.of(context).viewInsets.bottom;
 
-    return Padding(
-      padding: EdgeInsets.only(bottom: keyboardHeight > 0 ? keyboardHeight : 0),
-      child: SingleChildScrollView(
-        child: Stack(
-          children: [
-            Container(
-              height: 134 * scale,
-              width: screenWidth,
-              padding: const EdgeInsets.only(
-                top: 14,
-                right: 10,
-                left: 10,
-                bottom: 12,
-              ),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFFFFFF),
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  topRight: Radius.circular(12),
+    return GestureDetector(
+      onTap: () {
+        // 2. Shift focus to keep keyboard open but hide cursor
+        FocusScope.of(context).requestFocus(_keyboardFocus);
+      },
+      behavior: HitTestBehavior.translucent,
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: keyboardHeight > 0 ? keyboardHeight : 0,
+        ),
+        child: SingleChildScrollView(
+          child: Stack(
+            children: [
+              Container(
+                height: 116 * scale,
+                width: screenWidth,
+                padding: const EdgeInsets.only(
+                  top: 8,
+                  right: 10,
+                  left: 10,
+                  bottom: 6,
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFF000000).withValues(alpha: 0.10),
-                    blurRadius: 4,
-                    offset: Offset(0, -1),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFFFFF),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(12),
+                    topRight: Radius.circular(12),
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  taskName(scale),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        child: Row(
-                          children: [
-                            SchedulingSection(
-                              selectedHour: selectedHour,
-                              selectedMinute: selectedMinute,
-                              timeTapped: timeTapped,
-                              isEditing: widget.editTask,
-                              onTimeToggled: (newValue) {
-                                setState(() {
-                                  timeTapped = newValue;
-                                });
-                              },
-                              onTimeSelected: ((hour, minute) {
-                                setState(() {
-                                  selectedHour = hour;
-                                  selectedMinute = minute;
-                                  timeTapped = true;
-                                });
-                              }),
-                            ),
-                            priorityButton(scale),
-                            dateSelectionButton(context, scale),
-                            HabitButton(context, scale),
-                          ],
+                  boxShadow: [
+                    BoxShadow(
+                      color: Color(0xFF000000).withValues(alpha: 0.10),
+                      blurRadius: 4,
+                      offset: Offset(0, -1),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    SizedBox(
+                      height: 0,
+                      child: TextField(
+                        focusNode: _keyboardFocus,
+                        autofocus: true,
+                        showCursor: false,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.zero,
                         ),
                       ),
+                    ),
 
-                      SizedBox(
-                        height: 50,
-                        width: 110,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            widget.editTask ? deleteTask(scale) : SizedBox(),
-                            saveTaskButton(scale),
-                          ],
+                    taskName(scale),
+
+                    Divider(
+                      height:
+                          12 *
+                          scale, // Controls total vertical space the divider occupies
+                      color: Color(0xFFCFCFCF).withValues(alpha: 0.30),
+                      thickness: 1.5 * scale,
+                    ),
+
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        SizedBox(
+                          child: Row(
+                            children: [
+                              SchedulingSection(
+                                selectedHour: selectedHour,
+                                selectedMinute: selectedMinute,
+                                timeTapped: timeTapped,
+                                isEditing: widget.editTask,
+                                onTimeToggled: (newValue) {
+                                  setState(() {
+                                    timeTapped = newValue;
+                                  });
+                                },
+                                onTimeSelected: ((hour, minute) {
+                                  setState(() {
+                                    selectedHour = hour;
+                                    selectedMinute = minute;
+                                    timeTapped = true;
+                                  });
+                                }),
+                              ),
+                              priorityButton(scale),
+                              dateSelectionButton(context, scale),
+                              HabitButton(context, scale),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+
+                        SizedBox(
+                          height: 50,
+                          width: 110,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              widget.editTask ? deleteTask(scale) : SizedBox(),
+                              saveTaskButton(scale),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -169,6 +238,7 @@ class _AddTaskState extends State<AddTask> {
     return GestureDetector(
       onTap: () async {
         setState(() {
+          FocusScope.of(context).requestFocus(_keyboardFocus);
           tapOnceHabit = true;
         });
         await Future.delayed(Duration(milliseconds: 80));
@@ -258,6 +328,9 @@ class _AddTaskState extends State<AddTask> {
   GestureDetector dateSelectionButton(BuildContext context, double scale) {
     return GestureDetector(
       onTap: () async {
+        setState(() {
+          FocusScope.of(context).requestFocus(_keyboardFocus);
+        });
         final result =
             await showModalBottomSheet<
               ({
@@ -382,6 +455,7 @@ class _AddTaskState extends State<AddTask> {
     return GestureDetector(
       onTap: () async {
         setState(() {
+          FocusScope.of(context).requestFocus(_keyboardFocus);
           priorityTapped = true;
         });
         await Duration(milliseconds: 100);
@@ -447,7 +521,7 @@ class _AddTaskState extends State<AddTask> {
           await Posthog().capture(eventName: "Task Addded");
           if (!mounted) return;
           Navigator.pop(context, {
-            'name': taskText,
+            'name': _taskName.text.trim(),
             'hour': selectedHour,
             'minute': selectedMinute,
             'date': selectedDate,
@@ -455,16 +529,11 @@ class _AddTaskState extends State<AddTask> {
             'year': selectedYear.toString(),
             'isCompleted': false,
             'isHighPriority': priority,
+            'isHabit': repeatSelected,
+            'habitDays': showHabitDays, // Return current habit days
           });
         } else {
-          setState(() {
-            taskBorderError = true;
-            saveIconColorChange = true;
-          });
-          await Future.delayed(const Duration(milliseconds: 200));
-          setState(() {
-            saveIconColorChange = false;
-          });
+          _textShakeController.forward(from: 0.0);
         }
       },
       child: AnimatedContainer(
@@ -510,31 +579,13 @@ class _AddTaskState extends State<AddTask> {
   }
 
   Widget taskName(double scale) {
-    return AnimatedContainer(
-      duration: Duration(milliseconds: 80),
-      margin: const EdgeInsets.only(bottom: 8),
-      height: 50 * scale,
-      width: 416 * scale,
+    return _buildShakeable(
+      animation: _textShakeAnimation,
 
-      decoration: BoxDecoration(
-        color: const Color(0xFFF2F2F2),
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 4,
-            inset: true,
-            offset: Offset(0, 2),
-          ),
-        ],
-        border: Border.all(
-          color: taskBorderError ? Colors.red : Color(0xFFCCCCCC),
-          width: 2,
-        ),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      child: Padding(
-        padding: EdgeInsets.only(top: 2),
+      child: Container(
+        // Increased top margin to push ONLY the text field down from the top
+        margin: EdgeInsets.only(top: 5 * scale),
+        // REMOVED the fixed height: 30 * scale so the container hugs the text
         child: TextField(
           maxLength: 30,
           buildCounter:
@@ -544,38 +595,42 @@ class _AddTaskState extends State<AddTask> {
                 required isFocused,
                 maxLength,
               }) => null,
-          onChanged: (value) {
-            if (value.isNotEmpty) {
-              if (taskBorderError) {
-                setState(() {
-                  taskBorderError = false;
-                });
-              }
-            }
-          },
           autofocus: widget.editTask ? false : true,
           controller: _taskName,
-          cursorColor: taskBorderError ? Colors.red : Color(0xFF999999),
+          cursorColor: Color(0xFF999999),
           style: TextStyle(
             color: Color(0xFF464545),
-            fontSize: 20,
+            fontSize: 21,
             fontWeight: FontWeight.bold,
           ),
           decoration: InputDecoration(
-            hintText: taskBorderError
-                ? "Enter task name to save"
-                : "What's to be done?",
+            isDense: true,
+            contentPadding: EdgeInsets.zero,
+
+            hintText: "What's to be done?",
             hintStyle: TextStyle(
-              fontSize: 20,
+              fontSize: 21,
               fontWeight: FontWeight.bold,
-              color: taskBorderError
-                  ? Colors.red.withValues(alpha: 0.5)
-                  : Color(0xFF999999),
+              color: Color(0xFF999999),
             ),
             border: InputBorder.none,
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildShakeable({
+    required Animation<double> animation,
+    required Widget child,
+  }) {
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final dx = math.sin(animation.value * math.pi * 6) * 8;
+        return Transform.translate(offset: Offset(dx, 0), child: child);
+      },
+      child: child,
     );
   }
 }

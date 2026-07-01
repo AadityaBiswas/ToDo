@@ -10,6 +10,8 @@ import 'dart:math' as math;
 import 'package:flutter_svg/flutter_svg.dart';
 
 class ToDoTile extends StatefulWidget {
+  final List<bool>? habitDays;
+  final bool isHabit;
   final bool isTimerActive;
   final String taskName;
   final String taskHour;
@@ -23,6 +25,8 @@ class ToDoTile extends StatefulWidget {
   final void Function(Map<String, dynamic>) onEditedTask;
   const ToDoTile({
     super.key,
+    this.habitDays,
+    this.isHabit = false,
     required this.isHighPriority,
     required this.onTimerTap,
     required this.isTimerActive,
@@ -84,6 +88,8 @@ class _ToDoTileState extends State<ToDoTile> {
               taskMonth: widget.taskMonth,
               taskYear: widget.taskYear,
               isHighPriority: widget.isHighPriority,
+              isHabit: widget.isHabit,
+              habitDays: widget.habitDays ?? List.filled(7, false),
             );
           },
         );
@@ -106,6 +112,8 @@ class _ToDoTileState extends State<ToDoTile> {
             'year': widget.taskYear,
             'isCompleted': !widget.isCompleted,
             'isHighPriority': widget.isHighPriority,
+            'isHabit': widget.isHabit,
+            'habitDays': widget.habitDays,
           };
           widget.onEditedTask(updatedTask);
           await Posthog().capture(eventName: "Task Completed");
@@ -153,6 +161,8 @@ class _ToDoTileState extends State<ToDoTile> {
                   'year': widget.taskYear,
                   'isCompleted': true,
                   'isHighPriority': widget.isHighPriority,
+                  'isHabit': widget.isHabit,
+                  'habitDays': widget.habitDays,
                 };
                 widget.onEditedTask(updatedTask);
               } else {
@@ -165,6 +175,8 @@ class _ToDoTileState extends State<ToDoTile> {
                   'year': widget.taskYear,
                   'isCompleted': widget.isCompleted,
                   'isHighPriority': widget.isHighPriority,
+                  'isHabit': widget.isHabit,
+                  'habitDays': widget.habitDays,
                 };
                 widget.onEditedTask(updatedTask);
               }
@@ -201,34 +213,42 @@ class _ToDoTileState extends State<ToDoTile> {
   }
 
   Widget taskContainer(double scale) {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final double tileWidth = widget.isHabit ? 190 * scale : 400 * scale;
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 18 * scale),
-      width: 400 * scale,
-      height: 50 * scale,
+      width: tileWidth,
+      height: widget.isHabit ? 60 * scale : 50 * scale,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(widget.isHabit ? 14 : 10),
         color: widget.isTimerActive
             ? Color(0xFF333333)
             : AppColors.bgTaskCardIncomplete,
         border: Border(
           bottom: BorderSide(
             color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
-            width: widget.isCompleted || tapOnce ? 2 * scale : 8 * scale,
+            width: widget.isCompleted || tapOnce
+                ? widget.isHabit
+                      ? 3 * scale
+                      : 2 * scale
+                : widget.isHabit
+                ? 9 * scale
+                : 8 * scale,
             strokeAlign: BorderSide.strokeAlignOutside,
           ),
           top: BorderSide(
             color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
-            width: 2,
+            width: widget.isHabit ? 3 : 2,
             strokeAlign: BorderSide.strokeAlignOutside,
           ),
           left: BorderSide(
             color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
-            width: 2,
+            width: widget.isHabit ? 3 : 2,
             strokeAlign: BorderSide.strokeAlignOutside,
           ),
           right: BorderSide(
             color: widget.isTimerActive ? Color(0xFF262626) : Color(0xFFCCCCCC),
-            width: 2,
+            width: widget.isHabit ? 3 : 2,
             strokeAlign: BorderSide.strokeAlignOutside,
           ),
         ),
@@ -257,20 +277,29 @@ class _ToDoTileState extends State<ToDoTile> {
   Widget buildTaskName() {
     return Row(
       children: [
-        SizedBox(child: Icon(Icons.circle, size: 8, color: Colors.red)),
-        SizedBox(width: 6),
+        if (widget.isHighPriority)
+          SizedBox(child: Icon(Icons.circle, size: 8, color: Colors.red)),
+        SizedBox(width: widget.isHighPriority ? 6 : 0),
         AnimatedDefaultTextStyle(
           duration: const Duration(milliseconds: 100),
           curve: Curves.easeInOut,
           style: AppTextStyles.taskText.copyWith(
             color: widget.isTimerActive
                 ? const Color(0xFFF2F2F2)
-                : AppTextStyles.taskText.color,
+                : const Color(0xFF0D0D0D),
           ),
           child: Text(
             widget.isTimerActive ? "Start timer" : widget.taskName,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontWeight: widget.isHabit ? FontWeight.w700 : FontWeight.bold,
+              fontSize: widget.isTimerActive
+                  ? 16
+                  : widget.isHabit
+                  ? 18
+                  : 16,
+            ),
           ),
         ),
       ],
